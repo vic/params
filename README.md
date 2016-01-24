@@ -150,7 +150,7 @@ end
 
 Using `Params.Schema` the previous example would look like:
 
-```
+```elixir
 defmodule MyAPI.Params.Location do
   use Params.Schema
   @required ~w(latitude longitude)
