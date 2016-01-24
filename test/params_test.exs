@@ -109,5 +109,9 @@ defmodule ParamsTest do
     }
   }
 
+  test "defparams method returns changeset" do
+    assert %Changeset{} = kitten(%{})
+  end
+
 
 end

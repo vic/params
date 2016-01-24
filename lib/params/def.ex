@@ -2,9 +2,18 @@ defmodule Params.Def do
 
   defmacro defparams({name, _, [schema = {:%{}, _, _ }]}) do
     {dict, _} = Code.eval_quoted(schema, env: __CALLER__)
-    name = module_name(Params, name)
+    mod_name = module_name(Params, name)
     quote do
-      unquote(defschema(name, normalize_schema(name, dict)))
+      unquote(defschema(mod_name, normalize_schema(mod_name, dict)))
+      unquote(defun(mod_name, name))
+    end
+  end
+
+  defp defun(module, name) do
+    quote do
+      def unquote(name)(params) do
+        unquote(module).from(params)
+      end
     end
   end
 
