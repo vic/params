@@ -30,7 +30,7 @@ defmodule Params.Schema do
       end
 
       def changes(params, changeset_name \\ :changeset) do
-        Params.changes(from(params, changeset_name))
+        from(params, changeset_name) |> Params.changes
       end
 
       def changeset(changeset, params) do

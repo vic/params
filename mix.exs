@@ -5,9 +5,26 @@ defmodule Params.Mixfile do
     [app: :params,
      version: "0.0.1",
      elixir: "~> 1.2",
+     description: description,
+     package: package,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps]
+  end
+
+  def description do
+  """
+  Parameter structure validation and casting with Ecto.Schema.
+ """
+  end
+
+  def package do
+    [files: ~w(lib mix.exs README* LICENSE),
+     maintainers: ["Victor Hugo Borja <vborja@apache.org>"],
+     licenses: ["Apache 2.0"],
+     links: %{
+       "GitHub" => "https://github.com/vic/params"
+     }]
   end
 
   # Configuration for the OTP application
