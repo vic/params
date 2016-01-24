@@ -5,7 +5,7 @@ defmodule Params.Schema do
       require Ecto.Schema
       import Ecto.Changeset
 
-      @primary_key {:id, :binary_id, autogenerate: true}
+      @primary_key {:id, :binary_id, autogenerate: false}
       @timestamps_opts []
       @foreign_key_type :binary_id
       @before_compile Ecto.Schema
