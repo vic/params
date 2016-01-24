@@ -2,8 +2,9 @@ defmodule Params.Def do
 
   defmacro defparams({name, _, [schema = {:%{}, _, _ }]}) do
     {dict, _} = Code.eval_quoted(schema, env: __CALLER__)
+    name = module_name(Params, name)
     quote do
-      unquote(defschema(module_name(Params, name), normalize_schema(dict)))
+      unquote(defschema(name, normalize_schema(name, dict)))
     end
   end
 
@@ -23,13 +24,14 @@ defmodule Params.Def do
   end
 
   defp schema_fields(module, schema) do
-    Enum.map(schema, fn {name, meta} -> schema_field(module, name, meta) end)
+    Enum.map(schema, fn meta -> schema_field(module, meta) end)
   end
 
-  defp schema_field(module, name, meta) do
-    {call, type, opts} = {field_call(meta),
-                          field_type(module, name, meta),
-                          field_options(meta)}
+  defp schema_field(module, meta) do
+    {call, name, type, opts} = {field_call(meta),
+                                Keyword.get(meta, :name),
+                                field_type(module, meta),
+                                field_options(meta)}
     quote do
       unquote(call)(unquote(name), unquote(type), unquote(opts))
     end
@@ -43,7 +45,8 @@ defmodule Params.Def do
     end
   end
 
-  defp field_type(module, name, meta) do
+  defp field_type(module, meta) do
+    name = Keyword.get(meta, :name)
     cond do
       Keyword.get(meta, :field) -> Keyword.get(meta, :field)
       Keyword.get(meta, :embeds) -> module_name(module, name)
@@ -51,15 +54,23 @@ defmodule Params.Def do
   end
 
   defp field_options(meta) do
-    Keyword.drop(meta, [:field, :embeds, :required])
+    Keyword.drop(meta, [:module, :name, :field, :embeds, :required])
   end
 
-  defp normalize_schema(dict) do
-    Enum.reduce(dict, %{}, fn {k,v}, map ->
-      required = String.ends_with?("#{k}", "!")
-      name = String.replace_trailing("#{k}", "!", "") |> String.to_atom
-      Map.put(map, name, normalize_field(v, [required: required]))
+  defp normalize_schema(module, dict) do
+    Enum.reduce(dict, [], fn {k,v}, list ->
+      [normalize_field({module, k, v}) | list]
     end)
+  end
+
+  defp normalize_field({module, k, v}) when is_list(v) do
+    [module: module, name: k] ++ v
+  end
+
+  defp normalize_field({module, k, v}) do
+    required = String.ends_with?("#{k}", "!")
+    name = String.replace_trailing("#{k}", "!", "") |> String.to_atom
+    normalize_field(v, [name: name, required: required, module: module])
   end
 
   defp normalize_field(value, options) when is_atom(value) do
@@ -67,7 +78,7 @@ defmodule Params.Def do
   end
 
   defp normalize_field(schema = %{}, options) do
-    [embeds: normalize_schema(schema)] ++ options
+    [embeds: normalize_schema(Keyword.get(options, :module), schema)] ++ options
   end
 
   defp normalize_field([x], options) do
