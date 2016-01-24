@@ -1,6 +1,6 @@
 defmodule ParamsTest do
   use ExUnit.Case
-  doctest Params
+  use Params
 
   alias  Ecto.Changeset
   import Ecto.Changeset
@@ -98,4 +98,16 @@ defmodule ParamsTest do
     changes = BusParams.changes(params)
     assert %{origin: %{latitude: 12.2}} = changes
   end
+
+  defparams kitten %{
+    breed!:  :string,
+    age_min: :integer,
+    age_max: :integer,
+    near!: %{
+      latitude: :float,
+      longitude: :float
+    }
+  }
+
+
 end

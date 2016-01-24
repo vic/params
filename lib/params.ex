@@ -3,7 +3,14 @@ defmodule Params do
   @relations [:embed, :assoc]
   alias Ecto.Changeset
 
-  def from(params, module, changeset_name \\ :changeset) do
+  defmacro __using__(_) do
+    quote do
+      import Params.Def, only: [defparams: 1]
+    end
+  end
+
+  def from(params, module, changeset_name \\ :changeset)
+    when is_atom(module) and is_atom(changeset_name) do
     changeset(module, change(module), params, changeset_name)
   end
 

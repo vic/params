@@ -2,9 +2,22 @@
 
 Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Schema]
 
-- [About](#About)
-- [Installation](#Installation)
-- [Usage](#Usage)
+- [About](#about)
+- [Installation](#installation)
+- [Usage](#usage)
+
+## Installation
+
+[Available in Hex](https://hex.pm/packages/params), the package can be installed as:
+
+  1. Add params to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [{:params, "~> 0.0.1"}]
+end
+```
+
 
 ## About
 
@@ -51,16 +64,17 @@ end
 ```
 
 However, you can use `Ecto.Schema` for validating/casting data that
-wont even be persisted into a database. All you need is just specify a module and
+*wont ever* be persisted into a database. All you need is just specify a module and
 define your schema, [Ecto.Changeset][cast] will be happy to work with it.
 
 This comes handy when you have certain parameter structure you want
-to enforce for example if you are developing a REST API.
+to enforce for example when creating a REST API.
 
 Some Rails developers might be right now wondering where their
-_strong parameters_ can be defined. On Elixir land, there's no need for
-such a thing, as we will see, just using an `Ecto.Schema` with `Ecto.Changeset`
-can be much more powerful.
+_strong parameters_ can be defined. On Elixir land, there's no need for such a thing, as we will see, just using an `Ecto.Schema` with `Ecto.Changeset`
+can be much more flexible. Using schemas allows not only
+specifing which fields we want, but changesets let use
+type cast, perform validations on values, etc.
 
 So, for example, suppose your API performs a search for kittens looking for
 home and expects something like:
@@ -130,73 +144,30 @@ end
 That would work, however it's still a lot of code,
 just for creating parameter schemas and changesets.
 
-[Params](#Usage) is just a simple [Ecto.Schema][Ecto.Schema]
+[Params](#usage) is just a simple [Ecto.Schema][Ecto.Schema]
 wrapper for reducing all this boilerplate, while still
 leting you create custom changesets for parameter processing.
 
-## Installation
-
-[Available in Hex](https://hex.pm/packages/params), the package can be installed as:
-
-  1. Add params to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [{:params, "~> 0.0.1"}]
-end
-```
-
 ## Usage
 
-Using `Params.Schema` the previous example would look like:
-
 ```elixir
-defmodule MyAPI.Params.Location do
-  use Params.Schema
-  @required ~w(latitude longitude)
-  schema do
-    field :latitude,  :float
-    field :longitude, :float
+defmodule MyAPI.KittenController do
+
+  use Params
+  defparams kitten_search %{
+    breed!: :string,
+    age_min: :integer, age_max: :integer,
+    near_location!: %{
+      latitude!: :float, longitude!: :float
+    }
+  }
+
+  def search(conn, params) do
+    changeset = kitten_search(params)
+    if changeset.valid? do
+    ...
   end
 end
-
-defmodule MyAPI.Params.KittenSearch do
-  use Params.Schema
-  @required ~w(breed near_location)
-  @optional ~w(age_min age_max)
-  schema do
-    field :breed, :string
-    field :age_min, :integer
-    field :age_max, :integer
-    embeds_one :near_location, Location
-  end
-end
-```
-
-By default if you dont specify an `@required`
-module attribute, all defined fields will be
-taken as `@optional`, allowing your module
-to just work. You also dont need to specify
-a `changeset` method (but you can overrive it though).
-
-The default generated `changeset` method, just
-takes the `@required` and `@optional` lists
-and correctly populates embedded schemas.
-
-On you controller:
-
-```elixir
-
-# Obtain a changeset from the params dict
-changeset = MyAPI.Params.KittenSearch.from(params)
-
-# the changeset will be valid if all nested
-# schemas are also valid and if casting was ok
-changeset.valid?
-
-# You can also obtain a dict back from
-# casted and cleaned data changes
-changes = MyAPI.Params.KittenSearch.changes(params)
 ```
 
 
