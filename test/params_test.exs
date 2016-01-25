@@ -160,5 +160,11 @@ defmodule ParamsTest do
     assert %{valid?: true} = kid(%{name: "hugo", age: 5})
   end
 
+  test "can obtain model from changeset" do
+    m = Params.model kid(%{name: "hugo", age: "5"})
+    assert "hugo" = m.name
+    assert 5 = m.age
+  end
+
 
 end
