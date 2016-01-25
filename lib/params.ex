@@ -9,11 +9,6 @@ defmodule Params do
     end
   end
 
-  def from(params, module, changeset_name \\ :changeset)
-    when is_atom(module) and is_atom(changeset_name) do
-    changeset(module, change(module), params, changeset_name)
-  end
-
   def changes(%Changeset{} = ch) do
     Enum.reduce(ch.changes, %{}, fn {k, v}, m ->
       case v do
@@ -41,6 +36,11 @@ defmodule Params do
         |> Enum.map(&Atom.to_string/1)
       x -> x
     end
+  end
+
+  def changeset(module, params, changeset_name \\ :changeset)
+  when is_atom(module) and is_atom(changeset_name) do
+    changeset(module, change(module), params, changeset_name)
   end
 
   def changeset(module, changeset, params, changeset_name)

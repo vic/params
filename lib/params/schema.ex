@@ -26,7 +26,7 @@ defmodule Params.Schema do
       Module.register_attribute(__MODULE__, :optional, persist: true)
 
       def from(params, changeset_name \\ :changeset) do
-        Params.from(params, __MODULE__, changeset_name)
+        Params.changeset(__MODULE__, params, changeset_name)
       end
 
       def changes(params, changeset_name \\ :changeset) do
