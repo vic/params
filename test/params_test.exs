@@ -103,14 +103,27 @@ defmodule ParamsTest do
     breed!:  :string,
     age_min: :integer,
     age_max: :integer,
-    near!: %{
+    near_location!: %{
       latitude: :float,
       longitude: :float
     }
   }
 
-  test "defparams method returns changeset" do
+  test "kitten method returns changeset" do
     assert %Changeset{} = kitten(%{})
+  end
+
+  test "kitten returns valid changeset when all data is ok" do
+    params = %{
+      "breed" => "Russian Blue",
+      "age_min" => "0",
+      "age_max" => "4",
+      "near_location" => %{
+        "latitude" => "87.5",
+        "longitude" => "-90.0"
+      }
+    }
+    assert %Changeset{valid?: true} = kitten(params)
   end
 
 

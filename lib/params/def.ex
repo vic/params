@@ -4,7 +4,7 @@ defmodule Params.Def do
     {dict, _} = Code.eval_quoted(schema, env: __CALLER__)
     mod_name = module_name(Params, name)
     quote do
-      unquote(defschema(mod_name, normalize_schema(mod_name, dict)))
+      unquote(defschema(normalize_schema(mod_name, dict)))
       unquote(defun(mod_name, name))
     end
   end
@@ -21,25 +21,33 @@ defmodule Params.Def do
     "#{parent}." <> Macro.camelize("#{name}") |> String.to_atom
   end
 
-  defp defschema(name, schema) do
+  defp defschema(schema) do
+    module_name = Keyword.get(List.first(schema), :module)
     quote do
-      defmodule unquote(name) do
+      defmodule unquote(module_name) do
         use Params.Schema
         schema do
-          unquote_splicing(schema_fields(name, schema))
+          unquote_splicing(schema_fields(schema))
         end
       end
+      unquote_splicing(embed_schemas(schema))
     end
   end
 
-  defp schema_fields(module, schema) do
-    Enum.map(schema, fn meta -> schema_field(module, meta) end)
+  defp embed_schemas(schemas) do
+    embedded? = fn x -> Keyword.has_key?(x, :embeds) end
+    gen_schema = fn x -> defschema(Keyword.get(x, :embeds)) end
+    schemas |> Enum.filter_map(embedded?, gen_schema)
   end
 
-  defp schema_field(module, meta) do
+  defp schema_fields(schema) do
+    Enum.map(schema, &schema_field/1)
+  end
+
+  defp schema_field(meta) do
     {call, name, type, opts} = {field_call(meta),
                                 Keyword.get(meta, :name),
-                                field_type(module, meta),
+                                field_type(meta),
                                 field_options(meta)}
     quote do
       unquote(call)(unquote(name), unquote(type), unquote(opts))
@@ -54,8 +62,9 @@ defmodule Params.Def do
     end
   end
 
-  defp field_type(module, meta) do
-    name = Keyword.get(meta, :name)
+  defp field_type(meta) do
+    module = Keyword.get(meta, :module)
+    name   = Keyword.get(meta, :name)
     cond do
       Keyword.get(meta, :field) -> Keyword.get(meta, :field)
       Keyword.get(meta, :embeds) -> module_name(module, name)
@@ -72,10 +81,6 @@ defmodule Params.Def do
     end)
   end
 
-  defp normalize_field({module, k, v}) when is_list(v) do
-    [module: module, name: k] ++ v
-  end
-
   defp normalize_field({module, k, v}) do
     required = String.ends_with?("#{k}", "!")
     name = String.replace_trailing("#{k}", "!", "") |> String.to_atom
@@ -87,7 +92,8 @@ defmodule Params.Def do
   end
 
   defp normalize_field(schema = %{}, options) do
-    [embeds: normalize_schema(Keyword.get(options, :module), schema)] ++ options
+    embedded = module_name Keyword.get(options, :module), Keyword.get(options, :name)
+    [embeds: normalize_schema(embedded, schema)] ++ options
   end
 
   defp normalize_field([x], options) do
