@@ -14,7 +14,7 @@ Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Sche
 
 ```elixir
 def deps do
-  [{:params, "~> 0.0.2"}]
+  [{:params, "~> 0.0.3"}]
 end
 ```
 
@@ -164,29 +164,55 @@ defmodule MyAPI.KittenController do
     }
   }
 
-  def search(conn, params) do
+  def index(conn, params) do
     changeset = kitten_search(params)
     if changeset.valid? do
+      search = Params.model changeset
+      IO.puts search.near_location.latitude
     ...
   end
 end
 ```
 
 The `defparams` macro generates a module for each
-param object. Note that required fields have a
-leading `!` at definition time only.
+param object.
+
+By default all fields are optional. You can mark
+required fields by ending them with a `!`, of course
+the bang is removed from the field definition and is
+only used to mark which fields are required by default.
+
+The `Params.model` and `Params.changes` can be useful
+for obtaining an struct or map from a changeset.
 
 You can include additional methods or custom
 changesets by providing a `do` block for `defparams`:
 
 ```elixir
-defparams user_search_params(%{name: :string, age: :integer}) do
+defparams user_search(%{name: :string, age: :integer}) do
 
   def changeset(ch, params) do
-    cast(ch, params, ~w(name gender), ~w())
+    cast(ch, params, ~w(name age), ~w())
     |> validate_inclusion(:age, 20..60)
   end
 
+  def child(ch, params) do
+    cast(ch, params, ~w(name age), ~w())
+    |> validate_inclusion(:age, 1..6)
+  end
+
+end
+```
+
+then on your controller you can use
+
+```elixir
+# UserController.ex
+
+def index(conn, params) do
+   changeset = user_search(params, :child)
+   if changeset.valid? do
+     # age in 1..6
 end
 ```
 

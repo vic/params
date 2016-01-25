@@ -145,11 +145,10 @@ defmodule ParamsTest do
       |> validate_inclusion(:age, 10..20)
     end
 
-    def custom(ch, params) do
+    def changeset(ch, params) do
       cast(ch, params, ~w(name age), ~w())
       |> validate_inclusion(:age, 1..6)
     end
-
   end
 
   test "user can populate with custom changeset" do
@@ -165,6 +164,5 @@ defmodule ParamsTest do
     assert "hugo" = m.name
     assert 5 = m.age
   end
-
 
 end

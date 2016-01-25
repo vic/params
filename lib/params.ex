@@ -3,7 +3,7 @@ defmodule Params do
   @relations [:embed, :assoc]
   alias Ecto.Changeset
 
-  defmacro __using__(_) do
+  defmacro __using__([]) do
     quote do
       import Params.Def, only: [defparams: 1, defparams: 2]
     end
