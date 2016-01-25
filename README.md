@@ -156,6 +156,7 @@ The previous example could be written like:
 defmodule MyAPI.KittenController do
 
   use Params
+
   defparams kitten_search %{
     breed!: :string,
     age_min: :integer, age_max: :integer,
@@ -189,32 +190,33 @@ You can include additional methods or custom
 changesets by providing a `do` block for `defparams`:
 
 ```elixir
-defparams user_search(%{name: :string, age: :integer}) do
+defmodule MyApp.UserController do
 
-  def changeset(ch, params) do
-    cast(ch, params, ~w(name age), ~w())
-    |> validate_inclusion(:age, 20..60)
+
+  def index(conn, params) do
+    changeset = user_search(params, :child)
+    if changeset.valid? do
+      # age in 1..6
   end
 
-  def child(ch, params) do
-    cast(ch, params, ~w(name age), ~w())
-    |> validate_inclusion(:age, 1..6)
+  defparams user_search(%{name: :string, age: :integer}) do
+
+    def changeset(ch, params) do
+      cast(ch, params, ~w(name age), ~w())
+      |> validate_inclusion(:age, 20..60)
+    end
+
+    def child(ch, params) do
+      cast(ch, params, ~w(name age), ~w())
+      |> validate_inclusion(:age, 1..6)
+    end
+
   end
 
 end
 ```
 
-then on your controller you can use
 
-```elixir
-# UserController.ex
-
-def index(conn, params) do
-   changeset = user_search(params, :child)
-   if changeset.valid? do
-     # age in 1..6
-end
-```
 
 [Phoenix]: http://www.phoenixframework.org
 [Ecto]: https://hexdocs.pm/ecto
