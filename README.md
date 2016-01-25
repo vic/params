@@ -150,6 +150,8 @@ leting you create custom changesets for parameter processing.
 
 ## Usage
 
+The previous example could be written like:
+
 ```elixir
 defmodule MyAPI.KittenController do
 
@@ -170,6 +172,23 @@ defmodule MyAPI.KittenController do
 end
 ```
 
+The `defparams` macro generates a module for each
+param object. Note that required fields have a
+leading `!` at definition time only.
+
+You can include additional methods or custom
+changesets by providing a `do` block for `defparams`:
+
+```elixir
+defparams user_search_params(%{name: :string, age: :integer}) do
+
+  def changeset(ch, params) do
+    cast(ch, params, ~w(name gender), ~w())
+    |> validate_inclusion(:age, 20..60)
+  end
+
+end
+```
 
 [Phoenix]: http://www.phoenixframework.org
 [Ecto]: https://hexdocs.pm/ecto
