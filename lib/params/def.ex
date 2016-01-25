@@ -1,5 +1,15 @@
 defmodule Params.Def do
 
+  defmacro defparams({name, _, [schema = {:%{}, _, _ }]}, [do: block]) do
+    {dict, _} = Code.eval_quoted(schema, env: __CALLER__)
+    mod_name = module_name(Params, name)
+    quote do
+      unquote(defschema(normalize_schema(mod_name, dict)))
+      unquote(defun(mod_name, name))
+      unquote(block)
+    end
+  end
+
   defmacro defparams({name, _, [schema = {:%{}, _, _ }]}) do
     {dict, _} = Code.eval_quoted(schema, env: __CALLER__)
     mod_name = module_name(Params, name)
@@ -8,6 +18,7 @@ defmodule Params.Def do
       unquote(defun(mod_name, name))
     end
   end
+
 
   defp defun(module, name) do
     quote do
@@ -26,12 +37,27 @@ defmodule Params.Def do
     quote do
       defmodule unquote(module_name) do
         use Params.Schema
+        @required unquote(field_names(schema, &is_required?/1))
+        @optional unquote(field_names(schema, &is_optional?/1))
         schema do
           unquote_splicing(schema_fields(schema))
         end
       end
       unquote_splicing(embed_schemas(schema))
     end
+  end
+
+  defp is_required?(field_schema) do
+    Keyword.get(field_schema, :required, false)
+  end
+
+  defp is_optional?(field_schema) do
+    !is_required?(field_schema)
+  end
+
+  defp field_names(schema, filter) do
+    names = fn x -> Keyword.get(x, :name) |> Atom.to_string end
+    schema |> Enum.filter_map(filter, names)
   end
 
   defp embed_schemas(schemas) do

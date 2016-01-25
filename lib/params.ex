@@ -5,7 +5,7 @@ defmodule Params do
 
   defmacro __using__(_) do
     quote do
-      import Params.Def, only: [defparams: 1]
+      import Params.Def, only: [defparams: 1, defparams: 2]
     end
   end
 

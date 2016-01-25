@@ -109,6 +109,14 @@ defmodule ParamsTest do
     }
   }
 
+  test "kitten module has list of required fields" do
+    assert ["near_location", "breed"] = Params.required(Params.Kitten)
+  end
+
+  test "kitten module has list of optional fields" do
+    assert ["age_min", "age_max"] = Params.optional(Params.Kitten)
+  end
+
   test "kitten method returns changeset" do
     assert %Changeset{} = kitten(%{})
   end
@@ -124,6 +132,15 @@ defmodule ParamsTest do
       }
     }
     assert %Changeset{valid?: true} = kitten(params)
+  end
+
+  defparams kid %{
+        name: :string,
+        age: :integer
+  } do
+    def changeset(ch, params) do
+      cast(ch, params, ~w(name), ~w(age))
+    end
   end
 
 
