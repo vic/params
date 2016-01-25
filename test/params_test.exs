@@ -134,13 +134,30 @@ defmodule ParamsTest do
     assert %Changeset{valid?: true} = kitten(params)
   end
 
-  defparams kid %{
+  defparams kid(
+      %{
         name: :string,
         age: :integer
-  } do
-    def changeset(ch, params) do
+      }) do
+
+    def custom(ch, params) do
       cast(ch, params, ~w(name), ~w(age))
+      |> validate_inclusion(:age, 10..20)
     end
+
+    def custom(ch, params) do
+      cast(ch, params, ~w(name age), ~w())
+      |> validate_inclusion(:age, 1..6)
+    end
+
+  end
+
+  test "user can populate with custom changeset" do
+    assert %{valid?: false} = kid(%{name: "hugo", age: 5}, :custom)
+  end
+
+  test "user can override changeset" do
+    assert %{valid?: true} = kid(%{name: "hugo", age: 5})
   end
 
 

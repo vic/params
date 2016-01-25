@@ -1,29 +1,26 @@
 defmodule Params.Def do
 
-  defmacro defparams({name, _, [schema = {:%{}, _, _ }]}, [do: block]) do
-    {dict, _} = Code.eval_quoted(schema, env: __CALLER__)
-    mod_name = module_name(Params, name)
-    quote do
-      unquote(defschema(normalize_schema(mod_name, dict)))
-      unquote(defun(mod_name, name))
-      unquote(block)
-    end
+  defmacro defparams({name, _, [schema]}, [do: block]) do
+    define(name, schema, __CALLER__, block)
   end
 
-  defmacro defparams({name, _, [schema = {:%{}, _, _ }]}) do
-    {dict, _} = Code.eval_quoted(schema, env: __CALLER__)
+  defmacro defparams({name, _, [schema]}) do
+    define(name, schema, __CALLER__, nil)
+  end
+
+  defp define(name, schema, env, block) do
+    {dict, _} = Code.eval_quoted(schema, env: env)
     mod_name = module_name(Params, name)
     quote do
-      unquote(defschema(normalize_schema(mod_name, dict)))
+      unquote(defschema(normalize_schema(mod_name, dict), block))
       unquote(defun(mod_name, name))
     end
   end
-
 
   defp defun(module, name) do
     quote do
-      def unquote(name)(params) do
-        unquote(module).from(params)
+      def unquote(name)(params, changeset_name \\ :changeset) do
+        unquote(module).from(params, changeset_name)
       end
     end
   end
@@ -32,7 +29,7 @@ defmodule Params.Def do
     "#{parent}." <> Macro.camelize("#{name}") |> String.to_atom
   end
 
-  defp defschema(schema) do
+  defp defschema(schema, block) do
     module_name = Keyword.get(List.first(schema), :module)
     quote do
       defmodule unquote(module_name) do
@@ -42,6 +39,7 @@ defmodule Params.Def do
         schema do
           unquote_splicing(schema_fields(schema))
         end
+        unquote(block)
       end
       unquote_splicing(embed_schemas(schema))
     end
@@ -62,7 +60,7 @@ defmodule Params.Def do
 
   defp embed_schemas(schemas) do
     embedded? = fn x -> Keyword.has_key?(x, :embeds) end
-    gen_schema = fn x -> defschema(Keyword.get(x, :embeds)) end
+    gen_schema = fn x -> defschema(Keyword.get(x, :embeds), nil) end
     schemas |> Enum.filter_map(embedded?, gen_schema)
   end
 

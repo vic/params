@@ -26,16 +26,22 @@ defmodule Params.Schema do
       Module.register_attribute(__MODULE__, :optional, persist: true)
 
       def from(params, changeset_name \\ :changeset) do
-        Params.changeset(__MODULE__, params, changeset_name)
+        ch = %{__struct__: __MODULE__} |> Ecto.Changeset.change
+        apply(__MODULE__, changeset_name, [ch, params])
       end
 
       def changes(params, changeset_name \\ :changeset) do
         from(params, changeset_name) |> Params.changes
       end
 
-      def changeset(changeset, params) do
-        Params.changeset(__MODULE__, changeset, params, :changeset)
+      def model(params, changeset_name \\ :changeset) do
+        from(params, changeset_name) |> Params.model
       end
+
+      def changeset(changeset, params) do
+        Params.changeset(changeset, params, :changeset)
+      end
+
       defoverridable [changeset: 2]
 
     end
