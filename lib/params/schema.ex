@@ -47,12 +47,16 @@ defmodule Params.Schema do
     end
   end
 
-  defmacro __using__(_opts) do
+  defmacro __using__([]) do
     quote do
       import Params.Schema, only: [schema: 1]
       unquote(__use__(:ecto))
       unquote(__use__(:params))
     end
+  end
+
+  defmacro __using__({:%{}, _, _} = schema) do
+    Params.Def.defschema_at(schema, __CALLER__)
   end
 
   defmacro schema([do: definition]) do

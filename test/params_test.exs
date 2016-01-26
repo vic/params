@@ -165,4 +165,21 @@ defmodule ParamsTest do
     assert 5 = m.age
   end
 
+  defmodule SearchUser do
+
+    use Params.Schema, %{
+      names: [:string],
+      locations: [%{
+        latitude:  :float,
+        longitude: :float
+      }]
+    }
+
+    def changeset(ch, params) do
+      cast(ch, params, ~w(), ~w())
+    end
+
+  end
+
+
 end

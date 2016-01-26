@@ -1,19 +1,27 @@
 defmodule Params.Def do
 
   defmacro defparams({name, _, [schema]}, [do: block]) do
-    define(name, schema, __CALLER__, block)
+    define(name, schema_eval(schema, __CALLER__), block)
   end
 
   defmacro defparams({name, _, [schema]}) do
-    define(name, schema, __CALLER__, nil)
+    define(name, schema_eval(schema, __CALLER__), nil)
   end
 
-  defp define(name, schema, env, block) do
-    {dict, _} = Code.eval_quoted(schema, env: env)
-    mod_name = module_name(Params, name)
+  def defschema_at(schema, env) do
+    schema_eval(schema, env) |> normalize_schema(env.module) |> defschema
+  end
+
+  defp schema_eval(x = {:%{}, _, _}, env) do
+    {schema = %{}, _} = Code.eval_quoted(x, env: env)
+    schema
+  end
+
+  defp define(name, schema,  block) do
+    module = module_name(Params, name)
     quote do
-      unquote(defschema(normalize_schema(mod_name, dict), block))
-      unquote(defun(mod_name, name))
+      unquote(defschema(normalize_schema(schema, module), block))
+      unquote(defun(module, name))
     end
   end
 
@@ -33,15 +41,21 @@ defmodule Params.Def do
     module_name = Keyword.get(List.first(schema), :module)
     quote do
       defmodule unquote(module_name) do
-        use Params.Schema
-        @required unquote(field_names(schema, &is_required?/1))
-        @optional unquote(field_names(schema, &is_optional?/1))
-        schema do
-          unquote_splicing(schema_fields(schema))
-        end
+        unquote(defschema(schema))
         unquote(block)
       end
+    end
+  end
+
+  defp defschema(schema) do
+    quote do
       unquote_splicing(embed_schemas(schema))
+      use Params.Schema
+      @required unquote(field_names(schema, &is_required?/1))
+      @optional unquote(field_names(schema, &is_optional?/1))
+      schema do
+        unquote_splicing(schema_fields(schema))
+      end
     end
   end
 
@@ -96,10 +110,10 @@ defmodule Params.Def do
   end
 
   defp field_options(meta) do
-    Keyword.drop(meta, [:module, :name, :field, :embeds, :required])
+    Keyword.drop(meta, [:module, :name, :field, :embeds, :required, :cardinality])
   end
 
-  defp normalize_schema(module, dict) do
+  defp normalize_schema(dict, module) do
     Enum.reduce(dict, [], fn {k,v}, list ->
       [normalize_field({module, k, v}) | list]
     end)
@@ -116,8 +130,8 @@ defmodule Params.Def do
   end
 
   defp normalize_field(schema = %{}, options) do
-    embedded = module_name Keyword.get(options, :module), Keyword.get(options, :name)
-    [embeds: normalize_schema(embedded, schema)] ++ options
+    module = module_name Keyword.get(options, :module), Keyword.get(options, :name)
+    [embeds: normalize_schema(schema, module)] ++ options
   end
 
   defp normalize_field([x], options) do
