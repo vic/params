@@ -166,19 +166,22 @@ defmodule ParamsTest do
   end
 
   defmodule SearchUser do
-
     use Params.Schema, %{
-      names: [:string],
-      locations: [%{
+      name: :string,
+      near: %{
         latitude:  :float,
         longitude: :float
-      }]
+      }
     }
 
     def changeset(ch, params) do
-      cast(ch, params, ~w(), ~w())
+      cast(ch, params, ~w(name), ~w())
+      |> cast_embed(:near)
     end
+  end
 
+  test "can define a custom module for params schema" do
+    assert %{valid?: false} = SearchUser.from(%{near: %{}})
   end
 
 
