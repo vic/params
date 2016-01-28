@@ -186,31 +186,30 @@ only used to mark which fields are required by default.
 The `Params.model` and `Params.changes` can be useful
 for obtaining an struct or map from a changeset.
 
-You can include additional methods or custom
-changesets by providing a `do` block for `defparams`:
+You can also create a custom module of yours and define
+your schema or custom changesets in it:
 
 ```elixir
-defmodule MyApp.UserController do
+defmodule UserSearch do
+  use Params.Schema, %{name: :string, age: :integer}
 
-
-  def index(conn, params) do
-    changeset = user_search(params, :child)
-    if changeset.valid? do
-      # age in 1..6
+  def changeset(ch, params) do
+    cast(ch, params, ~w(name age), ~w())
+    |> validate_inclusion(:age, 20..60)
   end
 
-  defparams user_search(%{name: :string, age: :integer}) do
+  def child(ch, params) do
+    cast(ch, params, ~w(name age), ~w())
+    |> validate_inclusion(:age, 1..6)
+  end
+end
 
-    def changeset(ch, params) do
-      cast(ch, params, ~w(name age), ~w())
-      |> validate_inclusion(:age, 20..60)
-    end
+defmodule MyApp.UserController do
 
-    def child(ch, params) do
-      cast(ch, params, ~w(name age), ~w())
-      |> validate_inclusion(:age, 1..6)
-    end
-
+  def index(conn, params) do
+    changeset = UserSearch.from(params, :child)
+    if changeset.valid? do
+      # age in 1..6
   end
 
 end
