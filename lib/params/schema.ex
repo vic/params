@@ -1,5 +1,30 @@
 defmodule Params.Schema do
 
+  @moduledoc false
+
+  @doc false
+  defmacro __using__([]) do
+    quote do
+      import Params.Schema, only: [schema: 1]
+      unquote(__use__(:ecto))
+      unquote(__use__(:params))
+    end
+  end
+
+  @doc false
+  defmacro __using__(schema) do
+    Params.Def.defschema(schema)
+  end
+
+  @doc false
+  defmacro schema([do: definition]) do
+    quote do
+      Ecto.Schema.schema "params #{__MODULE__}" do
+        unquote(definition)
+      end
+    end
+  end
+
   defp __use__(:ecto) do
     quote do
       require Ecto.Schema
@@ -44,26 +69,6 @@ defmodule Params.Schema do
 
       defoverridable [changeset: 2]
 
-    end
-  end
-
-  defmacro __using__([]) do
-    quote do
-      import Params.Schema, only: [schema: 1]
-      unquote(__use__(:ecto))
-      unquote(__use__(:params))
-    end
-  end
-
-  defmacro __using__({:%{}, _, _} = schema) do
-    Params.Def.defschema_at(schema, __CALLER__)
-  end
-
-  defmacro schema([do: definition]) do
-    quote do
-      Ecto.Schema.schema "params #{__MODULE__}" do
-        unquote(definition)
-      end
     end
   end
 

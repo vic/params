@@ -1,31 +1,46 @@
 defmodule Params.Def do
 
+  @moduledoc false
+
+  @doc false
   defmacro defparams({name, _, [schema]}, [do: block]) do
-    define(name, schema_eval(schema, __CALLER__), block)
-  end
-
-  defmacro defparams({name, _, [schema]}) do
-    define(name, schema_eval(schema, __CALLER__), nil)
-  end
-
-  def defschema_at(schema, env) do
-    schema_eval(schema, env) |> normalize_schema(env.module) |> defschema
-  end
-
-  defp schema_eval(x = {:%{}, _, _}, env) do
-    {schema = %{}, _} = Code.eval_quoted(x, env: env)
-    schema
-  end
-
-  defp define(name, schema,  block) do
-    module = module_name(Params, name)
+    block = Macro.escape(block)
     quote do
-      unquote(defschema(normalize_schema(schema, module), block))
-      unquote(defun(module, name))
+      Module.eval_quoted(__MODULE__,
+                         Params.Def.define(unquote(schema),
+                                           unquote(name), unquote(block)))
     end
   end
 
-  defp defun(module, name) do
+  @doc false
+  defmacro defparams({name, _, [schema]}) do
+    quote do
+      Module.eval_quoted(__MODULE__,
+                         Params.Def.define(unquote(schema),
+                                           unquote(name), nil))
+    end
+  end
+
+  @doc false
+  def defschema(schema) do
+    quote do
+      Module.eval_quoted(__MODULE__,
+                         Params.Def.define(unquote(schema), __MODULE__))
+    end
+  end
+
+  @doc false
+  def define(schema, module) do
+    schema |> normalize_schema(module) |> gen_schema
+  end
+
+  @doc false
+  def define(schema, name, block) do
+    module = module_concat(Params, name)
+    [gen_schema(normalize_schema(schema, module), block), gen_from(module, name)]
+  end
+
+  defp gen_from(module, name) do
     quote do
       def unquote(name)(params, changeset_name \\ :changeset) do
         unquote(module).from(params, changeset_name)
@@ -33,21 +48,21 @@ defmodule Params.Def do
     end
   end
 
-  defp module_name(parent, name) do
-    "#{parent}." <> Macro.camelize("#{name}") |> String.to_atom
+  defp module_concat(parent, name) do
+    Module.concat [parent, Macro.camelize("#{name}")]
   end
 
-  defp defschema(schema, block) do
+  defp gen_schema(schema, block) do
     module_name = Keyword.get(List.first(schema), :module)
     quote do
       defmodule unquote(module_name) do
-        unquote(defschema(schema))
+        unquote(gen_schema(schema))
         unquote(block)
       end
     end
   end
 
-  defp defschema(schema) do
+  defp gen_schema(schema) do
     quote do
       unquote_splicing(embed_schemas(schema))
       use Params.Schema
@@ -74,8 +89,8 @@ defmodule Params.Def do
 
   defp embed_schemas(schemas) do
     embedded? = fn x -> Keyword.has_key?(x, :embeds) end
-    gen_schema = fn x -> defschema(Keyword.get(x, :embeds), nil) end
-    schemas |> Enum.filter_map(embedded?, gen_schema)
+    schema = fn x -> gen_schema(Keyword.get(x, :embeds), nil) end
+    schemas |> Enum.filter_map(embedded?, schema)
   end
 
   defp schema_fields(schema) do
@@ -105,7 +120,7 @@ defmodule Params.Def do
     name   = Keyword.get(meta, :name)
     cond do
       Keyword.get(meta, :field) -> Keyword.get(meta, :field)
-      Keyword.get(meta, :embeds) -> module_name(module, name)
+      Keyword.get(meta, :embeds) -> module_concat(module, name)
     end
   end
 
@@ -130,7 +145,7 @@ defmodule Params.Def do
   end
 
   defp normalize_field(schema = %{}, options) do
-    module = module_name Keyword.get(options, :module), Keyword.get(options, :name)
+    module = module_concat Keyword.get(options, :module), Keyword.get(options, :name)
     [embeds: normalize_schema(schema, module)] ++ options
   end
 

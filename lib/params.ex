@@ -1,14 +1,18 @@
 defmodule Params do
 
+  @moduledoc false
+
   @relations [:embed, :assoc]
   alias Ecto.Changeset
 
+  @doc false
   defmacro __using__([]) do
     quote do
       import Params.Def, only: [defparams: 1, defparams: 2]
     end
   end
 
+  @doc false
   def changes(%Changeset{} = ch) do
     Enum.reduce(ch.changes, %{}, fn {k, v}, m ->
       case v do
@@ -18,6 +22,7 @@ defmodule Params do
     end)
   end
 
+  @doc false
   def model(%Changeset{model: model} = ch) do
     Enum.reduce(ch.changes, model, fn {k, v}, m ->
       case v do
@@ -27,11 +32,13 @@ defmodule Params do
     end)
   end
 
+  @doc false
   def required(module) when is_atom(module) do
     module.__info__(:attributes)
     |> Keyword.get(:required, ~w())
   end
 
+  @doc false
   def optional(module) when is_atom(module) do
     module.__info__(:attributes)
     |> Keyword.get(:optional)
@@ -43,6 +50,7 @@ defmodule Params do
     end
   end
 
+  @doc false
   def changeset(%Changeset{model: %{__struct__: module}} = changeset, params, changeset_name)
   when is_atom(module) and is_atom(changeset_name) do
     {required, required_relations} =
@@ -58,10 +66,12 @@ defmodule Params do
                       with: changeset_name)
   end
 
+  @doc false
   def changeset(model = %{__struct__: _}, params, changeset_name) do
     changeset(model |> change, params, changeset_name)
   end
 
+  @doc false
   def changeset(module, params, changeset_name)
   when is_atom(module) and is_atom(changeset_name) do
     changeset(module |> change, params, changeset_name)

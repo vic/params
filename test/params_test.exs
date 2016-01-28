@@ -166,13 +166,15 @@ defmodule ParamsTest do
   end
 
   defmodule SearchUser do
-    use Params.Schema, %{
+    @schema %{
       name: :string,
       near: %{
         latitude:  :float,
         longitude: :float
       }
     }
+
+    use Params.Schema, @schema
 
     def changeset(ch, params) do
       cast(ch, params, ~w(name), ~w())
