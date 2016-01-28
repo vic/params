@@ -37,7 +37,7 @@ defmodule Params.Def do
   @doc false
   def define(schema, name, block) do
     module = module_concat(Params, name)
-    [gen_schema(normalize_schema(schema, module), block), gen_from(module, name)]
+    [gen_schema(module, normalize_schema(schema, module), block), gen_from(module, name)]
   end
 
   defp gen_from(module, name) do
@@ -52,16 +52,6 @@ defmodule Params.Def do
     Module.concat [parent, Macro.camelize("#{name}")]
   end
 
-  defp gen_schema(schema, block) do
-    module_name = Keyword.get(List.first(schema), :module)
-    quote do
-      defmodule unquote(module_name) do
-        unquote(gen_schema(schema))
-        unquote(block)
-      end
-    end
-  end
-
   defp gen_schema(schema) do
     quote do
       unquote_splicing(embed_schemas(schema))
@@ -70,6 +60,20 @@ defmodule Params.Def do
       @optional unquote(field_names(schema, &is_optional?/1))
       schema do
         unquote_splicing(schema_fields(schema))
+      end
+    end
+  end
+
+  defp gen_schema(:embeds, schema) do
+    module = schema |> List.first |> Keyword.get(:module)
+    gen_schema(module, schema, nil)
+  end
+
+  defp gen_schema(module, schema, block) do
+    quote do
+      defmodule unquote(module) do
+        unquote(gen_schema(schema))
+        unquote(block)
       end
     end
   end
@@ -89,8 +93,8 @@ defmodule Params.Def do
 
   defp embed_schemas(schemas) do
     embedded? = fn x -> Keyword.has_key?(x, :embeds) end
-    schema = fn x -> gen_schema(Keyword.get(x, :embeds), nil) end
-    schemas |> Enum.filter_map(embedded?, schema)
+    gen = fn x -> gen_schema(:embeds, Keyword.get(x, :embeds)) end
+    schemas |> Enum.filter_map(embedded?, gen)
   end
 
   defp schema_fields(schema) do
