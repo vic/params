@@ -95,7 +95,7 @@ defmodule ParamsTest do
         "latitude" => "12.2",
       }
     }
-    changes = BusParams.changes(params)
+    changes = Params.changes BusParams.from(params)
     assert %{origin: %{latitude: 12.2}} = changes
   end
 

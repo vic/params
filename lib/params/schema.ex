@@ -50,17 +50,11 @@ defmodule Params.Schema do
       Module.register_attribute(__MODULE__, :required, persist: true)
       Module.register_attribute(__MODULE__, :optional, persist: true)
 
+      @behaviour Params.Behaviour
+
       def from(params, changeset_name \\ :changeset) do
         ch = %{__struct__: __MODULE__} |> Ecto.Changeset.change
         apply(__MODULE__, changeset_name, [ch, params])
-      end
-
-      def changes(params, changeset_name \\ :changeset) do
-        from(params, changeset_name) |> Params.changes
-      end
-
-      def model(params, changeset_name \\ :changeset) do
-        from(params, changeset_name) |> Params.model
       end
 
       def changeset(changeset, params) do
@@ -68,7 +62,6 @@ defmodule Params.Schema do
       end
 
       defoverridable [changeset: 2]
-
     end
   end
 
