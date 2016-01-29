@@ -3,8 +3,12 @@ defmodule Params.Mixfile do
 
   def project do
     [app: :params,
-     version: "0.0.3",
+     version: "1.0.0",
      elixir: "~> 1.2",
+     name: "Params",
+     source_url: github,
+     homepage_url: "https://hex.pm/packages/params",
+     docs: docs,
      description: description,
      package: package,
      build_embedded: Mix.env == :prod,
@@ -18,13 +22,23 @@ defmodule Params.Mixfile do
  """
   end
 
+  def github do
+    "https://github.com/vic/params"
+  end
+
   def package do
     [files: ~w(lib mix.exs README* LICENSE),
      maintainers: ["Victor Hugo Borja <vborja@apache.org>"],
      licenses: ["Apache 2.0"],
      links: %{
-       "GitHub" => "https://github.com/vic/params"
+       "GitHub" => github
      }]
+  end
+
+  def docs do
+    [
+      extras: ["README.md"]
+    ]
   end
 
   # Configuration for the OTP application
@@ -45,7 +59,8 @@ defmodule Params.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:ecto, "~> 1.1.1"},
-     # {:ex_doc, ">= x.y.z", only: :dev},
+     {:earmark, "~> 0.1", only: :dev},
+     {:ex_doc, "~> 0.11", only: :dev},
      {:mix_test_watch, "~> 0.2", only: :dev},
      {:credo, "~> 0.2.5", only: :dev}]
   end

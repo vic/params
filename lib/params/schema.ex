@@ -1,6 +1,37 @@
 defmodule Params.Schema do
+  @moduledoc ~S"""
+  Defines a params schema for a model.
 
-  @moduledoc false
+  A params schema is just a map where keys are the parameter name
+  (ending with a `!` to mark the parameter as required) and the
+  value is either a valid Ecto.Type, another map for embedded schemas
+  or an array of those.
+
+  ## Example
+
+  ```elixir
+     defmodule ProductSearch do
+       use Params.Schema, %{
+         text!: :string,
+         near: %{
+           latitude!:  :float,
+           longitude!: :float
+         },
+         tags: [:string]
+       }
+     end
+  ```
+
+  To get an Ecto.Changeset for ProductSearch params use:
+
+  ```elixir
+     changeset = ProductSearch.from(params)
+  ```
+
+  To transform the changeset into a map or `%ProductSearch{}`struct use
+  [Params.changes/1](Params.html#changes/1) or [Params.model/1](Params.html#model/1)
+  respectively.
+  """
 
   @doc false
   defmacro __using__([]) do

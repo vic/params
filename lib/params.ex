@@ -1,6 +1,31 @@
 defmodule Params do
+  @moduledoc ~S"""
+  Functions for processing params and transforming their changesets.
 
-  @moduledoc false
+  `use Params` provides a `defparams` macro, allowing you to define
+  functions that process parameters according to some [schema](Params.Schema.html)
+
+  ## Example
+
+  ```elixir
+    defmodule MyApp.SessionController do
+      use Params
+
+      defparams login_params(%{email!: :string, :password!: :string})
+
+      def create(conn, params) do
+        case login_params(params) do
+          %Ecto.Changeset{valid?: true} = ch ->
+            login = Params.model(ch)
+            User.authenticate(login.email, login.password)
+            # ...
+          _ -> text(conn, "Invalid parameters")
+        end
+      end
+    end
+  ```
+
+  """
 
   @relations [:embed, :assoc]
   alias Ecto.Changeset
@@ -12,7 +37,12 @@ defmodule Params do
     end
   end
 
-  @doc false
+  @doc """
+  Transforms an Ecto.Changeset into a Map with atom keys.
+
+  Recursively traverses and transforms embedded changesets.
+  """
+  @spec changes(Changeset.t) :: map
   def changes(%Changeset{} = ch) do
     Enum.reduce(ch.changes, %{}, fn {k, v}, m ->
       case v do
@@ -23,7 +53,27 @@ defmodule Params do
     end)
   end
 
-  @doc false
+  @doc """
+  Transforms an Ecto.Changeset into a struct.
+
+  Recursively traverses and transforms embedded changesets.
+
+  For example if the `LoginParams` module was defined like:
+
+  ```elixir
+  defmodule LoginParams do
+     use Params.Schema, %{login!: :string, password!: :string}
+  end
+  ```
+
+  You can transform the changeset returned by `from` into an struct like:
+
+  ```elixir
+  model = LoginParams.from(%{"login" => "foo"}) |> Params.model
+  model.login # => "foo"
+  ```
+  """
+  @spec model(Changeset.t) :: Struct.t
   def model(%Changeset{model: model} = ch) do
     Enum.reduce(ch.changes, model, fn {k, v}, m ->
       case v do

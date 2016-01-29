@@ -5,6 +5,7 @@ Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Sche
 - [About](#about)
 - [Installation](#installation)
 - [Usage](#usage)
+- [API Documentation](https://hexdocs.pm/params/)
 
 ## Installation
 
@@ -14,7 +15,7 @@ Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Sche
 
 ```elixir
 def deps do
-  [{:params, "~> 0.0.3"}]
+  [{:params, "~> 1.0.0"}]
 end
 ```
 
@@ -162,7 +163,8 @@ defmodule MyAPI.KittenController do
     age_min: :integer, age_max: :integer,
     near_location!: %{
       latitude!: :float, longitude!: :float
-    }
+    },
+    tags: [:string]
   }
 
   def index(conn, params) do
@@ -175,15 +177,16 @@ defmodule MyAPI.KittenController do
 end
 ```
 
-The `defparams` macro generates a module for each
-param object.
+The `defparams` macro generates a module for processing
+a [params schema](http://hexdocs.pm/params/Params.Schema.html)
 
 By default all fields are optional. You can mark
 required fields by ending them with a `!`, of course
 the bang is removed from the field definition and is
 only used to mark which fields are required by default.
 
-The `Params.model` and `Params.changes` can be useful
+The [Params.model](http://hexdocs.pm/params/Params.html#model/1)
+and [Params.changes](http://hexdocs.pm/params/Params.html#changes/1) can be useful
 for obtaining an struct or map from a changeset.
 
 You can also create a module and define
@@ -210,6 +213,9 @@ defmodule MyApp.UserController do
 end
 ```
 
+## API Documentation
+
+[API Documentation](https://hexdocs.pm/params/)
 
 
 [Phoenix]: http://www.phoenixframework.org
