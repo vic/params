@@ -139,17 +139,25 @@ defmodule Params.Def do
     normalize_field(v, [name: name, required: required, module: module])
   end
 
-  defp normalize_field(value, options) when is_atom(value) do
-    [field: value] ++ options
-  end
-
   defp normalize_field(schema = %{}, options) do
     module = module_concat Keyword.get(options, :module), Keyword.get(options, :name)
     [embeds: normalize_schema(schema, module)] ++ options
   end
 
-  defp normalize_field([x], options) do
+  defp normalize_field(value, options) when is_atom(value) do
+    [field: value] ++ options
+  end
+
+  defp normalize_field({:array, x}, options) do
+    normalize_field([x], options)
+  end
+
+  defp normalize_field([x], options) when is_map(x) do
     [cardinality: :many] ++ normalize_field(x, options)
+  end
+
+  defp normalize_field([value], options) when is_atom(value) do
+    [field: {:array, value}] ++ options
   end
 
 end

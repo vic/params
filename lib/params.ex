@@ -17,6 +17,7 @@ defmodule Params do
     Enum.reduce(ch.changes, %{}, fn {k, v}, m ->
       case v do
         %Changeset{} -> Map.put(m, k, changes(v))
+        x = [%Changeset{} | _] -> Map.put(m, k, Enum.map(x, &changes/1))
         _ -> Map.put(m, k, v)
       end
     end)
@@ -27,6 +28,7 @@ defmodule Params do
     Enum.reduce(ch.changes, model, fn {k, v}, m ->
       case v do
         %Changeset{} -> Map.put(m, k, model(v))
+        x = [%Changeset{} | _] -> Map.put(m, k, Enum.map(x, &model/1))
         _ -> Map.put(m, k, v)
       end
     end)

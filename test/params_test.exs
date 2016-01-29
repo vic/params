@@ -186,5 +186,22 @@ defmodule ParamsTest do
     assert %{valid?: false} = SearchUser.from(%{near: %{}})
   end
 
+  defmodule StringArray do
+    use Params.Schema, %{tags!: [:string]}
+  end
+
+  test "can have param with array of strings" do
+    assert %{valid?: true} = ch = StringArray.from(%{"tags" => ["hello", "world"]})
+    assert ["hello", "world"] = Params.model(ch).tags
+  end
+
+  defmodule ManyNames do
+    use  Params.Schema, %{names!: [%{name!: :string}]}
+  end
+
+  test "can have array of embedded schemas" do
+    assert %{valid?: true} = ch = ManyNames.from(%{names: [%{name: "Julio"}, %{name: "Cesar"}]})
+    assert ["Julio", "Cesar"] = ch |> Params.model |> Map.get(:names) |> Enum.map(&(&1.name))
+  end
 
 end
