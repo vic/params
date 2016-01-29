@@ -77,7 +77,7 @@ can be much more flexible. Using schemas allows not only
 specifing which fields we want, but changesets let use
 type cast, perform validations on values, etc.
 
-So, for example, suppose your API performs a search for kittens looking for
+So, for example, suppose your Phoenix based API performs a search for kittens looking for
 home and expects something like:
 
 ```json
@@ -142,8 +142,12 @@ def search(conn, params) do
 end
 ```
 
-That would work, however it's still a lot of code,
-just for creating parameter schemas and changesets.
+That would allow you to take only valid params as you'd
+normally have with any other Ecto.Schema module.
+
+However it's still a lot of code, most of it
+defining the the changeset, specifying the optional
+and required fields, etc.
 
 [Params](#usage) is just a simple [Ecto.Schema][Ecto.Schema]
 wrapper for reducing all this boilerplate, while still
