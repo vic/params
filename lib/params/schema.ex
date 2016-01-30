@@ -88,6 +88,13 @@ defmodule Params.Schema do
         apply(__MODULE__, changeset_name, [ch, params])
       end
 
+      def model(params, changeset_name \\ :changeset) do
+        case from(params, changeset_name) do
+          ch = %{valid?: true} -> {:ok, Params.model(ch)}
+          ch -> {:error, ch}
+        end
+      end
+
       def changeset(changeset, params) do
         Params.changeset(changeset, params, :changeset)
       end

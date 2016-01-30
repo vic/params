@@ -204,4 +204,20 @@ defmodule ParamsTest do
     assert ["Julio", "Cesar"] = ch |> Params.model |> Map.get(:names) |> Enum.map(&(&1.name))
   end
 
+  defmodule Vowel do
+    use Params.Schema, %{x: :string}
+    def changeset(ch, params) do
+      cast(ch, params, ~w(x), ~w())
+      |> validate_inclusion(:x, ~w(a e i o u))
+    end
+  end
+
+  test "module's model function returns {:ok, model} for valid changeset" do
+    assert {:ok, %{__struct__: _, x: _}} = Vowel.model(%{"x" => "a"})
+  end
+
+  test "module's model function returns {:error, changeset} for invalid changeset" do
+    assert {:error, %Changeset{valid?: false}} = Vowel.model(%{"x" => "x"})
+  end
+
 end
