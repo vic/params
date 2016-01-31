@@ -84,7 +84,7 @@ defmodule Params.Schema do
       @behaviour Params.Behaviour
 
       def from(params, changeset_name \\ :changeset) do
-        ch = %{__struct__: __MODULE__} |> Ecto.Changeset.change
+        ch = struct(__MODULE__) |> Ecto.Changeset.change
         apply(__MODULE__, changeset_name, [ch, params])
       end
 

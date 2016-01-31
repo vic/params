@@ -134,7 +134,7 @@ defmodule Params do
   end
 
   defp change(module) when is_atom(module) do
-    %{__struct__: module} |> Changeset.change
+    struct(module) |> Changeset.change
   end
 
   defp relation_partition(module, names) do
