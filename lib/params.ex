@@ -74,7 +74,14 @@ defmodule Params do
   ```
   """
   @spec model(Changeset.t) :: Struct.t
-  def model(%Changeset{model: model} = ch) do
+  def model(%Changeset{} = ch) do
+    cond do
+      Map.has_key?(ch, :model) -> handle_model(ch, ch.model)
+      Map.has_key?(ch, :data)  -> handle_model(ch, ch.data)
+    end
+  end
+
+  def handle_model(%Changeset{} = ch, model) do
     Enum.reduce(ch.changes, model, fn {k, v}, m ->
       case v do
         %Changeset{} -> Map.put(m, k, model(v))
@@ -103,7 +110,16 @@ defmodule Params do
   end
 
   @doc false
-  def changeset(%Changeset{model: %{__struct__: module}} = changeset, params, changeset_name)
+  def changeset(%Changeset{} = changeset, params, changeset_name)
+  when is_atom(changeset_name) do
+    cond do
+      Map.has_key?(changeset, :model) -> handle_changeset(changeset, changeset.model, params, changeset_name)
+      Map.has_key?(changeset, :data) -> handle_changeset(changeset, changeset.data, params, changeset_name)
+    end
+  end
+
+  @doc false
+  def handle_changeset(%Changeset{} = changeset, %{__struct__: module}, params, changeset_name)
   when is_atom(module) and is_atom(changeset_name) do
     {required, required_relations} =
       relation_partition(module, required(module))
