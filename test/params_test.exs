@@ -141,7 +141,8 @@ defmodule ParamsTest do
       }) do
 
     def custom(ch, params) do
-      cast(ch, params, ~w(name), ~w(age))
+      cast(ch, params, ~w(name age))
+      |> validate_required([:name])
       |> validate_inclusion(:age, 10..20)
     end
 
@@ -177,7 +178,8 @@ defmodule ParamsTest do
     use Params.Schema, @schema
 
     def changeset(ch, params) do
-      cast(ch, params, ~w(name), ~w())
+      cast(ch, params, ~w(name))
+      |> validate_required([:name])
       |> cast_embed(:near)
     end
   end
