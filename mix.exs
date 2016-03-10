@@ -3,7 +3,7 @@ defmodule Params.Mixfile do
 
   def project do
     [app: :params,
-     version: "1.0.1",
+     version: "2.0.0-beta.0",
      elixir: "~> 1.2",
      name: "Params",
      source_url: github,
