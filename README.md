@@ -19,6 +19,13 @@ def deps do
 end
 ```
 
+For an `Ecto 2` compatible version use:
+
+```elixir
+def deps do
+  [{:params, "~> 2.0.0-beta"}]
+end
+```
 
 ## About
 
