@@ -23,7 +23,7 @@ end
 ## About
 
 If you've been doing [Ecto][Ecto] based applications lately,
-you know Ecto provides a very easy way to populate your models with data comming
+you know Ecto provides a very easy way to populate structs with data comming
 from request parameters, validating and casting their values along the way.
 
 All this thanks to the [Ecto.Schema][Ecto.Schema] and [Ecto.Changeset][cast] modules.
@@ -43,11 +43,12 @@ defmodule MyApp.User do
      field :age,  :integer
    end
 
-   @required ~(name)
-   @optional ~(age)
+   @required [:name]
+   @optional [:age]
 
    def changeset(changeset_or_model, params) do
-     cast(changeset_or_model, params, @required, @optional)
+     cast(changeset_or_model, params, @required ++ @optional)
+     |> validate_required(@required)
    end
 end
 ```
@@ -65,7 +66,7 @@ end
 ```
 
 However, you can use `Ecto.Schema` for validating/casting data that
-*wont ever* be persisted into a database. All you need is just specify a module and
+*wont necessarily* be persisted into a database. All you need is just specify a module and
 define your schema, [Ecto.Changeset][cast] will be happy to work with it.
 
 This comes handy when you have certain parameter structure you want
@@ -174,7 +175,7 @@ defmodule MyAPI.KittenController do
   def index(conn, params) do
     changeset = kitten_search(params)
     if changeset.valid? do
-      search = Params.model changeset
+      search = Params.data changeset
       IO.puts search.near_location.latitude
     ...
   end
@@ -189,7 +190,7 @@ required fields by ending them with a `!`, of course
 the bang is removed from the field definition and is
 only used to mark which fields are required by default.
 
-The [Params.model](http://hexdocs.pm/params/Params.html#model/1)
+The [Params.data](http://hexdocs.pm/params/Params.html#data/1)
 and [Params.changes](http://hexdocs.pm/params/Params.html#changes/1) can be useful
 for obtaining an struct or map from a changeset.
 

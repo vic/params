@@ -16,7 +16,7 @@ defmodule Params do
       def create(conn, params) do
         case login_params(params) do
           %Ecto.Changeset{valid?: true} = ch ->
-            login = Params.model(ch)
+            login = Params.data(ch)
             User.authenticate(login.email, login.password)
             # ...
           _ -> text(conn, "Invalid parameters")
@@ -69,23 +69,16 @@ defmodule Params do
   You can transform the changeset returned by `from` into an struct like:
 
   ```elixir
-  model = LoginParams.from(%{"login" => "foo"}) |> Params.model
-  model.login # => "foo"
+  data = LoginParams.from(%{"login" => "foo"}) |> Params.data
+  data.login # => "foo"
   ```
   """
-  @spec model(Changeset.t) :: Struct.t
-  def model(%Changeset{} = ch) do
-    cond do
-      Map.has_key?(ch, :model) -> handle_model(ch, ch.model)
-      Map.has_key?(ch, :data)  -> handle_model(ch, ch.data)
-    end
-  end
-
-  def handle_model(%Changeset{} = ch, model) do
-    Enum.reduce(ch.changes, model, fn {k, v}, m ->
+  @spec data(Changeset.t) :: Struct.t
+  def data(%Changeset{data: data} = ch) do
+    Enum.reduce(ch.changes, data, fn {k, v}, m ->
       case v do
-        %Changeset{} -> Map.put(m, k, model(v))
-        x = [%Changeset{} | _] -> Map.put(m, k, Enum.map(x, &model/1))
+        %Changeset{} -> Map.put(m, k, data(v))
+        x = [%Changeset{} | _] -> Map.put(m, k, Enum.map(x, &data/1))
         _ -> Map.put(m, k, v)
       end
     end)
@@ -93,57 +86,40 @@ defmodule Params do
 
   @doc false
   def required(module) when is_atom(module) do
-    module.__info__(:attributes)
-    |> Keyword.get(:required, ~w())
+    module.__info__(:attributes) |> Keyword.get(:required, [])
   end
 
   @doc false
   def optional(module) when is_atom(module) do
-    module.__info__(:attributes)
-    |> Keyword.get(:optional)
-    |> case do
-      nil ->
-        module.__changeset__ |> Map.keys
-        |> Enum.map(&Atom.to_string/1)
+    module.__info__(:attributes) |> Keyword.get(:optional) |> case do
+      nil -> module.__changeset__ |> Map.keys
       x -> x
     end
   end
 
   @doc false
-  def changeset(%Changeset{} = changeset, params, changeset_name)
-  when is_atom(changeset_name) do
-    cond do
-      Map.has_key?(changeset, :model) -> handle_changeset(changeset, changeset.model, params, changeset_name)
-      Map.has_key?(changeset, :data) -> handle_changeset(changeset, changeset.data, params, changeset_name)
-    end
-  end
-
-  @doc false
-  def handle_changeset(%Changeset{} = changeset, %{__struct__: module}, params, changeset_name)
-  when is_atom(module) and is_atom(changeset_name) do
+  def changeset(%Changeset{data: %{__struct__: module}} = changeset, params) do
     {required, required_relations} =
       relation_partition(module, required(module))
 
     {optional, optional_relations} =
       relation_partition(module, optional(module))
 
-    Changeset.cast(changeset, params, required ++ optional)
+    changeset
+    |> Changeset.cast(params, required ++ optional)
     |> Changeset.validate_required(required)
-    |> cast_relations(required_relations,
-                      required: true, with: changeset_name)
-    |> cast_relations(optional_relations,
-                      with: changeset_name)
+    |> cast_relations(required_relations, [required: true])
+    |> cast_relations(optional_relations, [])
   end
 
   @doc false
-  def changeset(model = %{__struct__: _}, params, changeset_name) do
-    changeset(model |> change, params, changeset_name)
+  def changeset(model = %{__struct__: _}, params) do
+    changeset(model |> change, params)
   end
 
   @doc false
-  def changeset(module, params, changeset_name)
-  when is_atom(module) and is_atom(changeset_name) do
-    changeset(module |> change, params, changeset_name)
+  def changeset(module, params) when is_atom(module) do
+    changeset(module |> change, params)
   end
 
   defp change(%{__struct__: _} = model) do
@@ -151,7 +127,7 @@ defmodule Params do
   end
 
   defp change(module) when is_atom(module) do
-    struct(module) |> Changeset.change
+    module |> struct |> Changeset.change
   end
 
   defp relation_partition(module, names) do
@@ -164,18 +140,15 @@ defmodule Params do
         {type, _} when type in @relations ->
           {fields, [{name, type} | relations]}
         _ ->
-          {[Atom.to_string(name) | fields], relations}
+          {[name | fields], relations}
       end
     end)
   end
 
   defp cast_relations(changeset, relations, opts) do
     Enum.reduce(relations, changeset, fn
-      {name, type}, ch ->
-        case type do
-          :assoc -> Changeset.cast_assoc(ch, name, opts)
-          :embed -> Changeset.cast_embed(ch, name, opts)
-        end
+      {name, :assoc}, ch -> Changeset.cast_assoc(ch, name, opts)
+      {name, :embed}, ch -> Changeset.cast_embed(ch, name, opts)
     end)
   end
 

@@ -1,6 +1,6 @@
 defmodule Params.Schema do
   @moduledoc ~S"""
-  Defines a params schema for a model.
+  Defines a params schema for a module.
 
   A params schema is just a map where keys are the parameter name
   (ending with a `!` to mark the parameter as required) and the
@@ -29,7 +29,7 @@ defmodule Params.Schema do
   ```
 
   To transform the changeset into a map or `%ProductSearch{}`struct use
-  [Params.changes/1](Params.html#changes/1) or [Params.model/1](Params.html#model/1)
+  [Params.changes/1](Params.html#changes/1) or [Params.data/1](Params.html#data/1)
   respectively.
   """
 
@@ -58,21 +58,9 @@ defmodule Params.Schema do
 
   defp __use__(:ecto) do
     quote do
-      require Ecto.Schema
+      use Ecto.Schema
       import Ecto.Changeset
-
       @primary_key {:id, :binary_id, autogenerate: false}
-      @timestamps_opts []
-      @foreign_key_type :binary_id
-      @before_compile Ecto.Schema
-
-      Module.register_attribute(__MODULE__, :ecto_fields, accumulate: true)
-      Module.register_attribute(__MODULE__, :ecto_assocs, accumulate: true)
-      Module.register_attribute(__MODULE__, :ecto_embeds, accumulate: true)
-      Module.register_attribute(__MODULE__, :ecto_raw, accumulate: true)
-      Module.register_attribute(__MODULE__, :ecto_autogenerate_insert, accumulate: true)
-      Module.register_attribute(__MODULE__, :ecto_autogenerate_update, accumulate: true)
-      Module.put_attribute(__MODULE__, :ecto_autogenerate_id, nil)
     end
   end
 
@@ -83,20 +71,20 @@ defmodule Params.Schema do
 
       @behaviour Params.Behaviour
 
-      def from(params, changeset_name \\ :changeset) do
-        ch = struct(__MODULE__) |> Ecto.Changeset.change
-        apply(__MODULE__, changeset_name, [ch, params])
+      def from(params, options \\ []) when is_list(options) do
+        on_cast = Keyword.get(options, :with, &__MODULE__.changeset(&1, &2))
+        __MODULE__ |> struct |> Ecto.Changeset.change |> on_cast.(params)
       end
 
-      def model(params, changeset_name \\ :changeset) do
-        case from(params, changeset_name) do
-          ch = %{valid?: true} -> {:ok, Params.model(ch)}
+      def data(params, options \\ []) when is_list(options) do
+        case from(params, options) do
+          ch = %{valid?: true} -> {:ok, Params.data(ch)}
           ch -> {:error, ch}
         end
       end
 
       def changeset(changeset, params) do
-        Params.changeset(changeset, params, :changeset)
+        Params.changeset(changeset, params)
       end
 
       defoverridable [changeset: 2]

@@ -37,8 +37,8 @@ defmodule Params.Def do
 
   defp gen_from(module, name) do
     quote do
-      def unquote(name)(params, changeset_name \\ :changeset) do
-        unquote(module).from(params, changeset_name)
+      def unquote(name)(params, options \\ []) do
+        unquote(module).from(params, options)
       end
     end
   end
@@ -82,8 +82,7 @@ defmodule Params.Def do
   end
 
   defp field_names(schema, filter) do
-    names = fn x -> Keyword.get(x, :name) |> Atom.to_string end
-    schema |> Enum.filter_map(filter, names)
+    schema |> Enum.filter_map(filter, &Keyword.get(&1, :name))
   end
 
   defp embed_schemas(schemas) do
