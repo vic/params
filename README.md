@@ -34,7 +34,7 @@ you know Ecto provides a very easy way to populate your models with data comming
 from request parameters, validating and casting their values along the way.
 
 All this thanks to the [Ecto.Schema][Ecto.Schema] and [Ecto.Changeset][cast] modules.
-The first specifies the fields your model has (tipically the same as your db table)
+The first specifies the fields your model has (typically the same as your db table)
 and the later provides an easy way to convert potentially unsafe data and validate
 stuff via changesets.
 
