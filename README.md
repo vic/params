@@ -171,7 +171,8 @@ defmodule MyAPI.KittenController do
 
   defparams kitten_search %{
     breed!: :string,
-    age_min: :integer, age_max: :integer,
+    age_max: :integer,
+    age_min: [field: :integer, default: 1],
     near_location!: %{
       latitude!: :float, longitude!: :float
     },

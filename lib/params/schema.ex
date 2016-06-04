@@ -80,6 +80,7 @@ defmodule Params.Schema do
     quote do
       Module.register_attribute(__MODULE__, :required, persist: true)
       Module.register_attribute(__MODULE__, :optional, persist: true)
+      Module.register_attribute(__MODULE__, :schema,   persist: true)
 
       @behaviour Params.Behaviour
 

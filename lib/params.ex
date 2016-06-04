@@ -74,20 +74,50 @@ defmodule Params do
   ```
   """
   @spec model(Changeset.t) :: Struct.t
-  def model(%Changeset{model: model} = ch) do
-    Enum.reduce(ch.changes, model, fn {k, v}, m ->
+  def model(%Changeset{model: model = %{__struct__: module}} = ch) do
+    default_embeds = default_embeds_from_schema(module)
+
+    default = Enum.reduce(default_embeds, model, fn {k, v}, m ->
+      Map.put(m, k, Map.get(m, k) || v)
+    end)
+
+    Enum.reduce(ch.changes, default, fn {k, v}, m ->
       case v do
-        %Changeset{} -> Map.put(m, k, model(v))
-        x = [%Changeset{} | _] -> Map.put(m, k, Enum.map(x, &model/1))
+        %Changeset{} -> 
+          Map.put(m, k, model(v))
+        x = [%Changeset{} | _] -> 
+          Map.put(m, k, Enum.map(x, &model/1))
         _ -> Map.put(m, k, v)
       end
     end)
   end
 
   @doc false
+  def default_embeds_from_schema(module) when is_atom(module) do
+    is_embed_default = fn kw ->
+      Keyword.get(kw, :embeds, [])
+      |> Enum.any?(&Keyword.has_key?(&1, :default))
+    end
+
+    default_embed = fn kw ->
+      name = Keyword.get(kw, :name)
+      embed_name = Params.Def.module_concat(module, name)
+      {name, default_embeds_from_schema(embed_name)}
+    end
+
+    defaults = schema(module)
+    |> Stream.filter_map(is_embed_default, default_embed)
+    |> Enum.into(struct(module) |> Map.from_struct)
+  end
+
+  @doc false
+  def schema(module) when is_atom(module) do
+    module.__info__(:attributes) |> Keyword.get(:schema)
+  end
+
+  @doc false
   def required(module) when is_atom(module) do
-    module.__info__(:attributes)
-    |> Keyword.get(:required, ~w())
+    module.__info__(:attributes) |> Keyword.get(:required, ~w())
   end
 
   @doc false
