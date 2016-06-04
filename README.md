@@ -19,6 +19,13 @@ def deps do
 end
 ```
 
+For an `Ecto 2` compatible version use:
+
+```elixir
+def deps do
+  [{:params, "~> 2.0.0-beta"}]
+end
+```
 
 ## About
 
@@ -27,11 +34,11 @@ you know Ecto provides a very easy way to populate structs with data comming
 from request parameters, validating and casting their values along the way.
 
 All this thanks to the [Ecto.Schema][Ecto.Schema] and [Ecto.Changeset][cast] modules.
-The first specifies the fields your model has (tipically the same as your db table)
+The first specifies the fields your model has (typically the same as your db table)
 and the later provides an easy way to convert potentially unsafe data and validate
 stuff via changesets.
 
-So for example, in a tipical [Phoenix][Phoenix] application, a `User` model
+So for example, in a typical [Phoenix][Phoenix] application, a `User` model
 would look like:
 
 ```elixir
@@ -78,7 +85,7 @@ can be much more flexible. Using schemas allows not only
 specifing which fields we want, but changesets let use
 type cast, perform validations on values, etc.
 
-So, for example, suppose your Phoenix based API performs a search for kittens looking for
+So, for example, suppose your Phoenix based API performs a search for kittens looking for a
 home and expects something like:
 
 ```json
@@ -165,7 +172,8 @@ defmodule MyAPI.KittenController do
 
   defparams kitten_search %{
     breed!: :string,
-    age_min: :integer, age_max: :integer,
+    age_max: :integer,
+    age_min: [field: :integer, default: 1],
     near_location!: %{
       latitude!: :float, longitude!: :float
     },

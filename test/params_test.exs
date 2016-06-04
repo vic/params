@@ -223,4 +223,39 @@ defmodule ParamsTest do
     assert {:error, %Changeset{valid?: false}} = Vowel.data(%{"x" => "x"})
   end
 
+  defparams schema_options %{
+    foo: [field: :string, default: "FOO"]
+  }
+
+  test "can specify raw Ecto.Schema options like default using a keyword list" do
+    ch = schema_options(%{})
+    assert ch.valid?
+    m = Params.data(ch)
+    assert m.foo == "FOO"
+  end
+
+  defparams default_nested %{
+    foo: %{
+      bar: :string,
+      baz: :string
+    },
+    bat: %{
+      man: [field: :string, default: "BATMAN"],
+      wo: %{
+        man: [field: :string, default: "BATWOMAN"]
+      },
+      mo: %{ vil: :string }
+    }
+  }
+
+  test "embeds with defaults are not nil" do
+    ch = default_nested(%{})
+    assert ch.valid?
+    m = Params.data(ch)
+    assert m.bat.man == "BATMAN"
+    assert m.bat.wo.man == "BATWOMAN"
+    assert %{mo: nil} = m.bat
+    assert nil == m.foo
+  end
+
 end

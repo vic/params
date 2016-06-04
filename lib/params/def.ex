@@ -43,7 +43,7 @@ defmodule Params.Def do
     end
   end
 
-  defp module_concat(parent, name) do
+  def module_concat(parent, name) do
     Module.concat [parent, Macro.camelize("#{name}")]
   end
 
@@ -51,6 +51,7 @@ defmodule Params.Def do
     quote do
       unquote_splicing(embed_schemas(schema))
       use Params.Schema
+      @schema   unquote(schema)
       @required unquote(field_names(schema, &is_required?/1))
       @optional unquote(field_names(schema, &is_optional?/1))
       schema do
@@ -155,7 +156,11 @@ defmodule Params.Def do
     [cardinality: :many] ++ normalize_field(x, options)
   end
 
-  defp normalize_field([value], options) when is_atom(value) do
+  defp normalize_field([{:field, x} | kw], options) do
+    normalize_field(x, options) ++ kw
+  end
+
+  defp normalize_field([value], options) do
     [field: {:array, value}] ++ options
   end
 
