@@ -40,17 +40,15 @@ defmodule Params do
   @doc """
   Transforms an Ecto.Changeset into a Map with atom keys.
 
-  Recursively traverses and transforms embedded changesets.
+  Recursively traverses and transforms embedded changesets and skips the _id
+  primary key field.
   """
-  @spec changes(Changeset.t) :: map
-  def changes(%Changeset{} = ch) do
-    Enum.reduce(ch.changes, %{}, fn {k, v}, m ->
-      case v do
-        %Changeset{} -> Map.put(m, k, changes(v))
-        x = [%Changeset{} | _] -> Map.put(m, k, Enum.map(x, &changes/1))
-        _ -> Map.put(m, k, v)
-      end
-    end)
+  @spec to_map(Changeset.t) :: map
+  def to_map(%Changeset{} = ch) do
+    ch
+    |> data
+    |> Map.from_struct
+    |> sanitize_map
   end
 
   @doc """
@@ -181,4 +179,14 @@ defmodule Params do
     end)
   end
 
+  defp sanitize_map(%{} = map) do
+    Enum.reduce(map, %{}, fn {k, v}, m ->
+      case {k, v} do
+        {:__meta__, _} -> m
+        {:_id, _} -> m
+        {k, %{} = nested} -> Map.put(m, k, sanitize_map(nested))
+        {k, v} -> Map.put(m, k, v)
+      end
+    end)
+  end
 end

@@ -89,14 +89,17 @@ defmodule ParamsTest do
   end
 
 
-  test "changes gets casted values" do
+  test "to_map gets map of struct except for _id" do
+    # This test fails because of a missing @schema
     params = %{
-      "origin" => %{
-        "latitude" => "12.2",
-      }
+      "latitude" => 12.2,
+      "longitude" => 13.3
     }
-    changes = Params.changes BusParams.from(params)
-    assert %{origin: %{latitude: 12.2}} = changes
+    result = params
+              |> LocationParams.from
+              |> Params.to_map
+
+    assert result == %{latitude: 12.2, longitude: 13.3}
   end
 
   defparams kitten %{
@@ -235,6 +238,12 @@ defmodule ParamsTest do
     assert m.foo == "FOO"
   end
 
+  test "gets default values with to_map" do
+    changeset = schema_options(%{})
+    map = Params.to_map(changeset)
+    assert map == %{foo: "FOO"}
+  end
+
   defparams default_nested %{
     foo: %{
       bar: :string,
@@ -259,4 +268,20 @@ defmodule ParamsTest do
     assert nil == m.foo
   end
 
+  test "to_map works on nested schemas with default values" do
+    changeset = default_nested(%{})
+    assert changeset.valid?
+    result = Params.to_map(changeset)
+
+    assert result == %{
+      foo: nil,
+      bat: %{
+        man: "BATMAN",
+        wo: %{
+          man: "BATWOMAN"
+        },
+        mo: nil
+      }
+    }
+  end
 end
