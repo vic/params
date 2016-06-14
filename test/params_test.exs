@@ -16,7 +16,7 @@ defmodule ParamsTest do
   test "module has schema types" do
     assert %{age: :integer,
              name: :string,
-             id: :binary_id} ==
+             _id: :binary_id} ==
       PetParams.__changeset__
   end
 
@@ -25,7 +25,7 @@ defmodule ParamsTest do
   end
 
   test "defaults to all optional fields" do
-    assert [:age, :id, :name] == Params.optional PetParams
+    assert [:_id, :age, :name] == Params.optional PetParams
   end
 
   test "from returns a changeset" do
@@ -162,8 +162,9 @@ defmodule ParamsTest do
 
   test "can obtain data from changeset" do
     m = Params.data kid(%{name: "hugo", age: "5"})
-    assert "hugo" = m.name
-    assert 5 = m.age
+    assert "hugo" == m.name
+    assert 5 == m.age
+    assert nil == m._id
   end
 
   defmodule SearchUser do
