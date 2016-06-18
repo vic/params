@@ -188,6 +188,7 @@ defmodule Params do
       case {k, v} do
         {:__meta__, _} -> m
         {:_id, _} -> m
+        {k, %{__struct__: _} = struct} -> Map.put(m, k, struct |> Map.from_struct |> sanitize_map)
         {k, %{} = nested} -> Map.put(m, k, sanitize_map(nested))
         {k, v} -> Map.put(m, k, v)
       end
