@@ -90,7 +90,6 @@ defmodule ParamsTest do
 
 
   test "to_map gets map of struct except for _id" do
-    # This test fails because of a missing @schema
     params = %{
       "latitude" => 12.2,
       "longitude" => 13.3
