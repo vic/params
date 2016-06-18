@@ -101,9 +101,13 @@ defmodule Params do
       {name, default_embeds_from_schema(embed_name)}
     end
 
-    defaults = schema(module)
-    |> Stream.filter_map(is_embed_default, default_embed)
-    |> Enum.into(struct(module) |> Map.from_struct)
+    case schema(module) do
+      nil -> %{}
+      schema ->
+        schema
+        |> Stream.filter_map(is_embed_default, default_embed)
+        |> Enum.into(struct(module) |> Map.from_struct)
+    end
   end
 
   @doc false
