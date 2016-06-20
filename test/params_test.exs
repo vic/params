@@ -16,7 +16,7 @@ defmodule ParamsTest do
   test "module has schema types" do
     assert %{age: :integer,
              name: :string,
-             id: :binary_id} ==
+             _id: :binary_id} ==
       PetParams.__changeset__
   end
 
@@ -25,7 +25,7 @@ defmodule ParamsTest do
   end
 
   test "defaults to all optional fields" do
-    assert ~w(age id name) == Params.optional PetParams
+    assert [:_id, :age, :name] == Params.optional PetParams
   end
 
   test "from returns a changeset" do
@@ -89,14 +89,17 @@ defmodule ParamsTest do
   end
 
 
-  test "changes gets casted values" do
+  test "to_map gets map of struct except for _id" do
+    # This test fails because of a missing @schema
     params = %{
-      "origin" => %{
-        "latitude" => "12.2",
-      }
+      "latitude" => 12.2,
+      "longitude" => 13.3
     }
-    changes = Params.changes BusParams.from(params)
-    assert %{origin: %{latitude: 12.2}} = changes
+    result = params
+              |> LocationParams.from
+              |> Params.to_map
+
+    assert result == %{latitude: 12.2, longitude: 13.3}
   end
 
   defparams kitten %{
@@ -110,11 +113,11 @@ defmodule ParamsTest do
   }
 
   test "kitten module has list of required fields" do
-    assert ["near_location", "breed"] = Params.required(Params.Kitten)
+    assert [:near_location, :breed] = Params.required(Params.Kitten)
   end
 
   test "kitten module has list of optional fields" do
-    assert ["age_min", "age_max"] = Params.optional(Params.Kitten)
+    assert [:age_min, :age_max] = Params.optional(Params.Kitten)
   end
 
   test "kitten method returns changeset" do
@@ -141,7 +144,8 @@ defmodule ParamsTest do
       }) do
 
     def custom(ch, params) do
-      cast(ch, params, ~w(name), ~w(age))
+      cast(ch, params, ~w(name age))
+      |> validate_required([:name])
       |> validate_inclusion(:age, 10..20)
     end
 
@@ -152,17 +156,18 @@ defmodule ParamsTest do
   end
 
   test "user can populate with custom changeset" do
-    assert %{valid?: false} = kid(%{name: "hugo", age: 5}, :custom)
+    assert %{valid?: false} = kid(%{name: "hugo", age: 5}, with: &Params.Kid.custom/2)
   end
 
   test "user can override changeset" do
     assert %{valid?: true} = kid(%{name: "hugo", age: 5})
   end
 
-  test "can obtain model from changeset" do
-    m = Params.model kid(%{name: "hugo", age: "5"})
-    assert "hugo" = m.name
-    assert 5 = m.age
+  test "can obtain data from changeset" do
+    m = Params.data kid(%{name: "hugo", age: "5"})
+    assert "hugo" == m.name
+    assert 5 == m.age
+    assert nil == m._id
   end
 
   defmodule SearchUser do
@@ -177,7 +182,8 @@ defmodule ParamsTest do
     use Params.Schema, @schema
 
     def changeset(ch, params) do
-      cast(ch, params, ~w(name), ~w())
+      cast(ch, params, ~w(name))
+      |> validate_required([:name])
       |> cast_embed(:near)
     end
   end
@@ -192,7 +198,7 @@ defmodule ParamsTest do
 
   test "can have param with array of strings" do
     assert %{valid?: true} = ch = StringArray.from(%{"tags" => ["hello", "world"]})
-    assert ["hello", "world"] = Params.model(ch).tags
+    assert ["hello", "world"] = Params.data(ch).tags
   end
 
   defmodule ManyNames do
@@ -201,23 +207,24 @@ defmodule ParamsTest do
 
   test "can have array of embedded schemas" do
     assert %{valid?: true} = ch = ManyNames.from(%{names: [%{name: "Julio"}, %{name: "Cesar"}]})
-    assert ["Julio", "Cesar"] = ch |> Params.model |> Map.get(:names) |> Enum.map(&(&1.name))
+    assert ["Julio", "Cesar"] = ch |> Params.data |> Map.get(:names) |> Enum.map(&(&1.name))
   end
 
   defmodule Vowel do
     use Params.Schema, %{x: :string}
     def changeset(ch, params) do
-      cast(ch, params, ~w(x), ~w())
+      cast(ch, params, [:x])
+      |> validate_required([:x])
       |> validate_inclusion(:x, ~w(a e i o u))
     end
   end
 
-  test "module's model function returns {:ok, model} for valid changeset" do
-    assert {:ok, %{__struct__: _, x: _}} = Vowel.model(%{"x" => "a"})
+  test "module's data function returns {:ok, data} for valid changeset" do
+    assert {:ok, %{__struct__: _, x: _}} = Vowel.data(%{"x" => "a"})
   end
 
-  test "module's model function returns {:error, changeset} for invalid changeset" do
-    assert {:error, %Changeset{valid?: false}} = Vowel.model(%{"x" => "x"})
+  test "module's data function returns {:error, changeset} for invalid changeset" do
+    assert {:error, %Changeset{valid?: false}} = Vowel.data(%{"x" => "x"})
   end
 
   defparams schema_options %{
@@ -227,8 +234,14 @@ defmodule ParamsTest do
   test "can specify raw Ecto.Schema options like default using a keyword list" do
     ch = schema_options(%{})
     assert ch.valid?
-    m = Params.model(ch)
+    m = Params.data(ch)
     assert m.foo == "FOO"
+  end
+
+  test "gets default values with to_map" do
+    changeset = schema_options(%{})
+    map = Params.to_map(changeset)
+    assert map == %{foo: "FOO"}
   end
 
   defparams default_nested %{
@@ -248,11 +261,27 @@ defmodule ParamsTest do
   test "embeds with defaults are not nil" do
     ch = default_nested(%{})
     assert ch.valid?
-    m = Params.model(ch)
+    m = Params.data(ch)
     assert m.bat.man == "BATMAN"
     assert m.bat.wo.man == "BATWOMAN"
     assert %{mo: nil} = m.bat
     assert nil == m.foo
   end
 
+  test "to_map works on nested schemas with default values" do
+    changeset = default_nested(%{})
+    assert changeset.valid?
+    result = Params.to_map(changeset)
+
+    assert result == %{
+      foo: nil,
+      bat: %{
+        man: "BATMAN",
+        wo: %{
+          man: "BATWOMAN"
+        },
+        mo: nil
+      }
+    }
+  end
 end

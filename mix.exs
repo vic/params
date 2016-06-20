@@ -3,7 +3,7 @@ defmodule Params.Mixfile do
 
   def project do
     [app: :params,
-     version: "1.1.0",
+     version: "2.0.0-beta.1",
      elixir: "~> 1.2",
      name: "Params",
      source_url: github,
@@ -58,7 +58,7 @@ defmodule Params.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:ecto, "~> 1.1.1"},
+    [{:ecto, "~> 2.0.0-beta"},
      {:earmark, "~> 0.1", only: :dev},
      {:ex_doc, "~> 0.11", only: :dev},
      {:mix_test_watch, "~> 0.2", only: :dev},
