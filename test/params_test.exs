@@ -90,7 +90,6 @@ defmodule ParamsTest do
 
 
   test "to_map gets map of struct except for _id" do
-    # This test fails because of a missing @schema
     params = %{
       "latitude" => 12.2,
       "longitude" => 13.3
@@ -268,8 +267,9 @@ defmodule ParamsTest do
     assert nil == m.foo
   end
 
-  test "to_map works on nested schemas with default values" do
-    changeset = default_nested(%{})
+  test "to_map works on nested schemas with default values and empty input" do
+    changeset = %{} |> default_nested
+
     assert changeset.valid?
     result = Params.to_map(changeset)
 
@@ -277,6 +277,29 @@ defmodule ParamsTest do
       foo: nil,
       bat: %{
         man: "BATMAN",
+        wo: %{
+          man: "BATWOMAN"
+        },
+        mo: nil
+      }
+    }
+  end
+
+  test "to_map works on nested schemas with default values" do
+    changeset = %{
+      bat: %{
+        man: "Bruce"
+      }
+    }
+    |> default_nested
+
+    assert changeset.valid?
+    result = Params.to_map(changeset)
+
+    assert result == %{
+      foo: nil,
+      bat: %{
+        man: "Bruce",
         wo: %{
           man: "BATWOMAN"
         },
