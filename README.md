@@ -19,13 +19,17 @@ def deps do
 end
 ```
 
-For an `Ecto 2` compatible version use:
+For an `Ecto 1` compatible version use:
 
 ```elixir
 def deps do
-  [{:params, "~> 2.0.0-beta"}]
+  [{:params, "~> 1.0.0"}]
 end
 ```
+
+Note that the `ecto-1` features are behind those in master,
+we are focusing on ecto-2 as it will soon be relased and most
+people will likely move to it.
 
 ## About
 
@@ -235,3 +239,9 @@ end
 [Ecto]: https://hexdocs.pm/ecto
 [Ecto.Schema]: https://hexdocs.pm/ecto/Ecto.Schema.html
 [cast]: https://hexdocs.pm/ecto/Ecto.Changeset.html#cast/4
+
+
+## Contributors
+
+- Lasse Skindstad Ebert @lasseebert
+- Victor Borja @vborja
