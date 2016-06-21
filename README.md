@@ -2,7 +2,7 @@
 
 Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Schema]
 
-[![Build Status](https://travis-ci.org/vic/params.svg?branch=ecto-1.x)](https://travis-ci.org/vic/params)
+[![Build Status](https://travis-ci.org/vic/params.svg?branch=master)](https://travis-ci.org/vic/params)
 
 - [About](#about)
 - [Installation](#installation)
