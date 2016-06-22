@@ -40,15 +40,15 @@ defmodule Params do
   @doc """
   Transforms an Ecto.Changeset into a Map with atom keys.
 
-  Recursively traverses and transforms embedded changesets and skips the _id
-  primary key field.
+  Recursively traverses and transforms embedded changesets and skips keys that
+  was not part of params given to changeset
   """
   @spec to_map(Changeset.t) :: map
-  def to_map(%Changeset{} = ch) do
-    ch
-    |> data
-    |> Map.from_struct
-    |> sanitize_map
+  def to_map(%Changeset{data: %{__struct__: module}} = ch) do
+    default = module |> schema |> defaults
+    change = changes(ch)
+
+    deep_merge(default, change)
   end
 
   @doc """
@@ -183,14 +183,49 @@ defmodule Params do
     end)
   end
 
-  defp sanitize_map(%{} = map) do
-    Enum.reduce(map, %{}, fn {k, v}, m ->
-      case {k, v} do
-        {:__meta__, _} -> m
-        {:_id, _} -> m
-        {k, %{__struct__: _} = struct} -> Map.put(m, k, struct |> Map.from_struct |> sanitize_map)
-        {k, %{} = nested} -> Map.put(m, k, sanitize_map(nested))
-        {k, v} -> Map.put(m, k, v)
+  defp deep_merge(%{} = map_1, %{} = map_2) do
+    Map.merge(map_1, map_2, &deep_merge_conflict/3)
+  end
+
+  defp deep_merge_conflict(_k, %{} = m1, %{} = m2) do
+    deep_merge(m1, m2)
+  end
+  defp deep_merge_conflict(_k, _v1, v2), do: v2
+
+  defp defaults(params, acc \\ %{}, path \\ [])
+  defp defaults([], acc, _path), do: acc
+  defp defaults(nil, _acc, _path), do: %{}
+  defp defaults([opts | rest], acc, path) when is_list(opts) do
+    defaults([Enum.into(opts, %{}) | rest], acc, path)
+  end
+  defp defaults([%{name: name, embeds: embeds} | rest], acc, path) do
+    acc = defaults(embeds, acc, [name | path])
+    defaults(rest, acc, path)
+  end
+  defp defaults([%{name: name, default: value} | rest], acc, path) do
+    funs = [name | path]
+    |> Enum.reverse
+    |> Enum.map(fn nested_name ->
+      fn :get_and_update, data, next ->
+        with {nil, inner_data} <- next.(data[nested_name] || %{}),
+             data = Map.put(data, nested_name, inner_data),
+             do: {nil, data}
+      end
+    end)
+
+    acc = put_in(acc, funs, value)
+    defaults(rest, acc, path)
+  end
+  defp defaults([%{} | rest], acc, path) do
+    defaults(rest, acc, path)
+  end
+
+  defp changes(%Changeset{} = ch) do
+    Enum.reduce(ch.changes, %{}, fn {k, v}, m ->
+      case v do
+        %Changeset{} -> Map.put(m, k, changes(v))
+        x = [%Changeset{} | _] -> Map.put(m, k, Enum.map(x, &changes/1))
+        _ -> Map.put(m, k, v)
       end
     end)
   end
