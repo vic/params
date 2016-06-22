@@ -192,10 +192,6 @@ required fields by ending them with a `!`, of course
 the bang is removed from the field definition and is
 only used to mark which fields are required by default.
 
-The [Params.data](http://hexdocs.pm/params/Params.html#data/1)
-and [Params.changes](http://hexdocs.pm/params/Params.html#changes/1) can be useful
-for obtaining an struct or map from a changeset.
-
 You can also create a module and define
 your schema or custom changesets in it:
 
@@ -218,6 +214,29 @@ defmodule MyApp.UserController do
   end
 
 end
+```
+
+The [Params.data](http://hexdocs.pm/params/Params.html#data/1)
+and [Params.to_map](http://hexdocs.pm/params/Params.html#to_map/1) can be useful
+for obtaining a struct or map from a changeset.
+
+Note that `Params.data` and `Params.to_map` have different behaviour: `data`
+returns a struct which will include all valid params. `to_map` returns a map
+that only includes the submitted keys and keys with default values:
+
+```elixir
+defmodule UserUpdateParams do
+  use Params.Schema, %{
+    name: :string,
+    age: :integer,
+    auditlog: [field: :boolean, default: true]
+  }
+end
+
+changeset = UserUpdateParams.from(%{name: "John"})
+
+Params.data(changeset) # => %UserUpdateParams{name: "John", age: nil, auditlog: true}
+Params.to_map(changeset) # => %{name: "John", auditlog: true}
 ```
 
 ## API Documentation

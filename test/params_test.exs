@@ -274,13 +274,11 @@ defmodule ParamsTest do
     result = Params.to_map(changeset)
 
     assert result == %{
-      foo: nil,
       bat: %{
         man: "BATMAN",
         wo: %{
           man: "BATWOMAN"
-        },
-        mo: nil
+        }
       }
     }
   end
@@ -297,13 +295,67 @@ defmodule ParamsTest do
     result = Params.to_map(changeset)
 
     assert result == %{
-      foo: nil,
       bat: %{
         man: "Bruce",
         wo: %{
           man: "BATWOMAN"
-        },
-        mo: nil
+        }
+      }
+    }
+  end
+
+  defmodule DefaultNested do
+    use Params.Schema, %{
+      a: :string,
+      b: :string,
+      c: [field: :string, default: "C"],
+      d: %{
+        e: :string,
+        f: :string,
+        g: [field: :string, default: "G"],
+      },
+      h: %{
+        i: :string,
+        j: :string,
+        k: [field: :string, default: "K"],
+      },
+      l: %{
+        m: :string
+      },
+      n: %{
+        o: %{
+          p: [field: :string, default: "P"]
+        }
+      }
+
+    }
+  end
+
+  test "to_map only returns submitted fields" do
+    result = %{
+      a: "A",
+      d: %{
+        e: "E",
+        g: "g"
+      }
+    }
+    |> DefaultNested.from
+    |> Params.to_map
+
+    assert result == %{
+      a: "A",
+      c: "C",
+      d: %{
+        e: "E",
+        g: "g"
+      },
+      h: %{
+        k: "K"
+      },
+      n: %{
+        o: %{
+          p: "P"
+        }
       }
     }
   end
