@@ -2,7 +2,7 @@
 
 Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Schema]
 
-[![Build Status](https://travis-ci.org/vic/params.svg?branch=ecto-1.x)](https://travis-ci.org/vic/params)
+[![Build Status](https://travis-ci.org/vic/params.svg?branch=master)](https://travis-ci.org/vic/params)
 
 - [About](#about)
 - [Installation](#installation)
@@ -17,21 +17,9 @@ Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Sche
 
 ```elixir
 def deps do
-  [{:params, "~> 2.0.0-beta"}]
+  [{:params, "~> 2.0.0"}]
 end
 ```
-
-For an `Ecto 1` compatible version use:
-
-```elixir
-def deps do
-  [{:params, "~> 1.0.0"}]
-end
-```
-
-Note that the `ecto-1` features are behind those in master,
-we are focusing on ecto-2 as it will soon be relased and most
-people will likely move to it.
 
 ## About
 
