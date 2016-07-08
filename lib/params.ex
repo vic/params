@@ -2,24 +2,24 @@ defmodule Params do
   @moduledoc ~S"""
   Functions for processing params and transforming their changesets.
 
+  `use Params` provides a `defparams` macro, allowing you to define
+  functions that process parameters according to some [schema](Params.Schema.html)
+
   ## Example
 
   ```elixir
     defmodule MyApp.SessionController do
-      defmodule CreateParams do
-        use Params.Schema, %{
-          email!: :string,
-          password!: :string
-        }
-      end
+      use Params
+
+      defparams login_params(%{email!: :string, :password!: :string})
 
       def create(conn, params) do
-        changeset = MyParams.from(params)
-        if changeset.valid? do
-          data = Params.to_map(changeset)
-          User.authenticate(data[:email], data[:password])
-        else
-          text(conn, "Invalid parameters")
+        case login_params(params) do
+          %Ecto.Changeset{valid?: true} = ch ->
+            login = Params.data(ch)
+            User.authenticate(login.email, login.password)
+            # ...
+          _ -> text(conn, "Invalid parameters")
         end
       end
     end
@@ -29,6 +29,13 @@ defmodule Params do
 
   @relations [:embed, :assoc]
   alias Ecto.Changeset
+
+  @doc false
+  defmacro __using__([]) do
+    quote do
+      import Params.Def, only: [defparams: 1, defparams: 2, defschema: 1]
+    end
+  end
 
   @doc """
   Transforms an Ecto.Changeset into a Map with atom keys.
