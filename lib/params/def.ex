@@ -1,21 +1,5 @@
 defmodule Params.Def do
-
   @moduledoc false
-
-  @doc false
-  defmacro defparams({name, _, [schema]}, [do: block]) do
-    block = Macro.escape(block)
-    quote bind_quoted: [name: name, schema: schema, block: block] do
-      Module.eval_quoted(__MODULE__, Params.Def.define(schema, name, block))
-    end
-  end
-
-  @doc false
-  defmacro defparams({name, _, [schema]}) do
-    quote bind_quoted: [name: name, schema: schema] do
-      Module.eval_quoted(__MODULE__, Params.Def.define(schema, name, nil))
-    end
-  end
 
   @doc false
   def defschema(schema) do

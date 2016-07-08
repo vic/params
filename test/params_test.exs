@@ -1,6 +1,5 @@
 defmodule ParamsTest do
   use ExUnit.Case
-  use Params
 
   alias  Ecto.Changeset
   import Ecto.Changeset
@@ -101,26 +100,28 @@ defmodule ParamsTest do
     assert result == %{latitude: 12.2, longitude: 13.3}
   end
 
-  defparams kitten %{
-    breed!:  :string,
-    age_min: :integer,
-    age_max: :integer,
-    near_location!: %{
-      latitude: :float,
-      longitude: :float
+  defmodule Kitten do
+    use Params.Schema, %{
+      breed!:  :string,
+      age_min: :integer,
+      age_max: :integer,
+      near_location!: %{
+        latitude: :float,
+        longitude: :float
+      }
     }
-  }
+  end
 
   test "kitten module has list of required fields" do
-    assert [:near_location, :breed] = Params.required(Params.Kitten)
+    assert [:near_location, :breed] = Params.required(Kitten)
   end
 
   test "kitten module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.Kitten)
+    assert [:age_min, :age_max] = Params.optional(Kitten)
   end
 
-  test "kitten method returns changeset" do
-    assert %Changeset{} = kitten(%{})
+  test "from function returns changeset" do
+    assert %Changeset{} = Kitten.from(%{})
   end
 
   test "kitten returns valid changeset when all data is ok" do
@@ -133,14 +134,14 @@ defmodule ParamsTest do
         "longitude" => "-90.0"
       }
     }
-    assert %Changeset{valid?: true} = kitten(params)
+    assert %Changeset{valid?: true} = Kitten.from(params)
   end
 
-  defparams kid(
-      %{
-        name: :string,
-        age: :integer
-      }) do
+  defmodule Kid do
+    use Params.Schema, %{
+      name: :string,
+      age: :integer
+    }
 
     def custom(ch, params) do
       cast(ch, params, ~w(name age))
@@ -155,15 +156,17 @@ defmodule ParamsTest do
   end
 
   test "user can populate with custom changeset" do
-    assert %{valid?: false} = kid(%{name: "hugo", age: 5}, with: &Params.Kid.custom/2)
+    assert %{valid?: false} = Kid.from(%{name: "hugo", age: 5}, with: &Kid.custom/2)
   end
 
   test "user can override changeset" do
-    assert %{valid?: true} = kid(%{name: "hugo", age: 5})
+    assert %{valid?: true} = Kid.from(%{name: "hugo", age: 5})
   end
 
   test "can obtain data from changeset" do
-    m = Params.data kid(%{name: "hugo", age: "5"})
+    m = %{name: "hugo", age: "5"}
+    |> Kid.from
+    |> Params.data
     assert "hugo" == m.name
     assert 5 == m.age
     assert nil == m._id
@@ -226,39 +229,43 @@ defmodule ParamsTest do
     assert {:error, %Changeset{valid?: false}} = Vowel.data(%{"x" => "x"})
   end
 
-  defparams schema_options %{
-    foo: [field: :string, default: "FOO"]
-  }
+  defmodule SchemaOptions do
+    use Params.Schema, %{
+      foo: [field: :string, default: "FOO"]
+    }
+  end
 
   test "can specify raw Ecto.Schema options like default using a keyword list" do
-    ch = schema_options(%{})
+    ch = SchemaOptions.from(%{})
     assert ch.valid?
     m = Params.data(ch)
     assert m.foo == "FOO"
   end
 
   test "gets default values with to_map" do
-    changeset = schema_options(%{})
+    changeset = SchemaOptions.from(%{})
     map = Params.to_map(changeset)
     assert map == %{foo: "FOO"}
   end
 
-  defparams default_nested %{
-    foo: %{
-      bar: :string,
-      baz: :string
-    },
-    bat: %{
-      man: [field: :string, default: "BATMAN"],
-      wo: %{
-        man: [field: :string, default: "BATWOMAN"]
+  defmodule DefaultWithNested do
+    use Params.Schema, %{
+      foo: %{
+        bar: :string,
+        baz: :string
       },
-      mo: %{ vil: :string }
+      bat: %{
+        man: [field: :string, default: "BATMAN"],
+        wo: %{
+          man: [field: :string, default: "BATWOMAN"]
+        },
+        mo: %{ vil: :string }
+      }
     }
-  }
+  end
 
   test "embeds with defaults are not nil" do
-    ch = default_nested(%{})
+    ch = DefaultWithNested.from(%{})
     assert ch.valid?
     m = Params.data(ch)
     assert m.bat.man == "BATMAN"
@@ -268,7 +275,7 @@ defmodule ParamsTest do
   end
 
   test "to_map works on nested schemas with default values and empty input" do
-    changeset = %{} |> default_nested
+    changeset = %{} |> DefaultWithNested.from
 
     assert changeset.valid?
     result = Params.to_map(changeset)
@@ -289,7 +296,7 @@ defmodule ParamsTest do
         man: "Bruce"
       }
     }
-    |> default_nested
+    |> DefaultWithNested.from
 
     assert changeset.valid?
     result = Params.to_map(changeset)
