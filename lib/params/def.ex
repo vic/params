@@ -10,21 +10,9 @@ defmodule Params.Def do
 
   @doc false
   def define(schema, module) do
-    schema |> normalize_schema(module) |> gen_schema
-  end
-
-  @doc false
-  def define(schema, name, block) do
-    module = module_concat(Params, name)
-    [gen_schema(module, normalize_schema(schema, module), block), gen_from(module, name)]
-  end
-
-  defp gen_from(module, name) do
-    quote do
-      def unquote(name)(params, options \\ []) do
-        unquote(module).from(params, options)
-      end
-    end
+    schema
+    |> normalize_schema(module)
+    |> gen_schema
   end
 
   def module_concat(parent, name) do
@@ -35,9 +23,11 @@ defmodule Params.Def do
     quote do
       unquote_splicing(embed_schemas(schema))
       use Params.Schema
+
       @schema   unquote(schema)
       @required unquote(field_names(schema, &is_required?/1))
       @optional unquote(field_names(schema, &is_optional?/1))
+
       schema do
         unquote_splicing(schema_fields(schema))
       end
