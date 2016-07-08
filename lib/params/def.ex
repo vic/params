@@ -2,26 +2,46 @@ defmodule Params.Def do
   @moduledoc false
 
   @doc false
-  def defschema(schema) do
+  defmacro defschema(schema) do
     quote bind_quoted: [schema: schema] do
-      Module.eval_quoted(__MODULE__, Params.Def.define(schema, __MODULE__))
+      normalized_schema = Params.Def.normalize_schema(schema, __MODULE__)
+
+      Module.eval_quoted(__MODULE__, Params.Def.gen_root_schema(normalized_schema))
+
+      normalized_schema
+      |> Params.Def.build_nested_schemas
+      |> Enum.each(fn
+        {name, content} ->
+          Module.create(name, content, Macro.Env.location(__ENV__))
+      end)
     end
   end
 
-  @doc false
-  def define(schema, module) do
-    schema
-    |> normalize_schema(module)
-    |> gen_schema
+  def build_nested_schemas(schemas, acc \\ [])
+  def build_nested_schemas([], acc), do: acc
+  def build_nested_schemas([schema | rest], acc) do
+    embedded = Keyword.has_key?(schema, :embeds)
+    acc = if embedded do
+      sub_schema = Keyword.get(schema, :embeds)
+
+      module_def = {
+        sub_schema |> List.first |> Keyword.get(:module),
+        Params.Def.gen_root_schema(sub_schema)
+      }
+      new_acc = [module_def | acc]
+      build_nested_schemas(sub_schema, new_acc)
+    else
+      acc
+    end
+    build_nested_schemas(rest, acc)
   end
 
   def module_concat(parent, name) do
     Module.concat [parent, Macro.camelize("#{name}")]
   end
 
-  defp gen_schema(schema) do
+  def gen_root_schema(schema) do
     quote do
-      unquote_splicing(embed_schemas(schema))
       use Params.Schema
 
       @schema   unquote(schema)
@@ -30,20 +50,6 @@ defmodule Params.Def do
 
       schema do
         unquote_splicing(schema_fields(schema))
-      end
-    end
-  end
-
-  defp gen_schema(:embeds, schema) do
-    module = schema |> List.first |> Keyword.get(:module)
-    gen_schema(module, schema, nil)
-  end
-
-  defp gen_schema(module, schema, block) do
-    quote do
-      defmodule unquote(module) do
-        unquote(gen_schema(schema))
-        unquote(block)
       end
     end
   end
@@ -60,21 +66,17 @@ defmodule Params.Def do
     schema |> Enum.filter_map(filter, &Keyword.get(&1, :name))
   end
 
-  defp embed_schemas(schemas) do
-    embedded? = fn x -> Keyword.has_key?(x, :embeds) end
-    gen = fn x -> gen_schema(:embeds, Keyword.get(x, :embeds)) end
-    schemas |> Enum.filter_map(embedded?, gen)
-  end
-
   defp schema_fields(schema) do
     Enum.map(schema, &schema_field/1)
   end
 
   defp schema_field(meta) do
-    {call, name, type, opts} = {field_call(meta),
-                                Keyword.get(meta, :name),
-                                field_type(meta),
-                                field_options(meta)}
+    {call, name, type, opts} = {
+      field_call(meta),
+      Keyword.get(meta, :name),
+      field_type(meta),
+      field_options(meta)
+    }
     quote do
       unquote(call)(unquote(name), unquote(type), unquote(opts))
     end
@@ -101,7 +103,7 @@ defmodule Params.Def do
     Keyword.drop(meta, [:module, :name, :field, :embeds, :required, :cardinality])
   end
 
-  defp normalize_schema(dict, module) do
+  def normalize_schema(dict, module) do
     Enum.reduce(dict, [], fn {k,v}, list ->
       [normalize_field({module, k, v}) | list]
     end)
