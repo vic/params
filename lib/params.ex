@@ -33,7 +33,7 @@ defmodule Params do
   @doc false
   defmacro __using__([]) do
     quote do
-      import Params.Def, only: [defparams: 1, defparams: 2]
+      import Params.Def, only: [defparams: 1, defparams: 2, defschema: 1]
     end
   end
 
