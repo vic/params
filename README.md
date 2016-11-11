@@ -198,6 +198,7 @@ your schema or custom changesets in it:
 ```elixir
 defmodule UserSearch do
   use Params.Schema, %{name: :string, age: :integer}
+  import Ecto.Changeset, only: [cast: 4, validate_inclusion: 3]
 
   def child(ch, params) do
     cast(ch, params, ~w(name age), ~w())
@@ -208,7 +209,7 @@ end
 defmodule MyApp.UserController do
 
   def index(conn, params) do
-    changeset = UserSearch.from(params, :child)
+    changeset = UserSearch.from(params, with: &UserSearch.child/2)
     if changeset.valid? do
       # age in 1..6
   end
