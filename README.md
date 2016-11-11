@@ -198,10 +198,11 @@ your schema or custom changesets in it:
 ```elixir
 defmodule UserSearch do
   use Params.Schema, %{name: :string, age: :integer}
+  import Ecto.Changeset, only: [cast: 4, validate_inclusion: 3]
 
   def child(ch, params) do
-    Ecto.Changeset.cast(ch, params, ~w(name age), ~w())
-    |> Ecto.Changeset.validate_inclusion(:age, 1..6)
+    cast(ch, params, ~w(name age), ~w())
+    |> validate_inclusion(:age, 1..6)
   end
 end
 
