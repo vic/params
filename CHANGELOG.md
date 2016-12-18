@@ -11,22 +11,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- This changelog.
+* This changelog.
 
 ### Changed
 
-- Relaxed ecto dependency to 2.0 and elixir >=1.3
-  #16 by @lasseebert
+* Relaxed ecto dependency to 2.0 and elixir >=1.3
+
+  (#16) Thanks @lasseebert
 
 
 ## [2.0.1] - 2016-07-11
 
 ### Added
 
-- Support for ecto 2.0
+* Support for ecto 2.0
 
 ### Changed
 
-- to_map now only returns the submitted keys and keys with default values.
-  #10 by @lasseebert
+* to_map now only returns the submitted keys and keys with default values.
+
+  (#10) Thanks @lasseebert
 
