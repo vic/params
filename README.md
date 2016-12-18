@@ -17,7 +17,7 @@ Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Sche
 
 ```elixir
 def deps do
-  [{:params, "~> 2.0.1"}]
+  [{:params, "~> 2.0.2"}]
 end
 ```
 

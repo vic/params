@@ -60,7 +60,8 @@ defmodule Params.Mixfile do
   defp deps do
     [
      {:ecto, "~> 2.0"},
-     {:ex_doc, ">= 0.0.0", only: :dev}
+     {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+     {:earmark, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 end
