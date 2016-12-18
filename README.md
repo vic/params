@@ -111,7 +111,8 @@ defmodule MyApi.Params.Location
   end
 
   def changeset(ch, params) do
-    cast(ch, params, @required, @optional)
+    cast(ch, params, @required ++ @optional)
+    |> validate_required(@required)
   end
 end
 
@@ -130,7 +131,8 @@ defmodule MyAPI.Params.KittenSearch
   end
 
   def changeset(ch, params) do
-    cast(ch, params, @required, @optional)
+    cast(ch, params, @required ++ @optional)
+    |> validate_required(@required)
     |> cast_embed(:near_location, required: true)
   end
 end
@@ -198,10 +200,10 @@ your schema or custom changesets in it:
 ```elixir
 defmodule UserSearch do
   use Params.Schema, %{name: :string, age: :integer}
-  import Ecto.Changeset, only: [cast: 4, validate_inclusion: 3]
+  import Ecto.Changeset, only: [cast: 3, validate_inclusion: 3]
 
   def child(ch, params) do
-    cast(ch, params, ~w(name age), ~w())
+    cast(ch, params, ~w(name age))
     |> validate_inclusion(:age, 1..6)
   end
 end
@@ -248,7 +250,7 @@ Params.to_map(changeset) # => %{name: "John", auditlog: true}
 [Phoenix]: http://www.phoenixframework.org
 [Ecto]: https://hexdocs.pm/ecto
 [Ecto.Schema]: https://hexdocs.pm/ecto/Ecto.Schema.html
-[cast]: https://hexdocs.pm/ecto/Ecto.Changeset.html#cast/4
+[cast]: https://hexdocs.pm/ecto/Ecto.Changeset.html#cast/3
 
 
 ## Contributors

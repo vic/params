@@ -6,14 +6,14 @@ defmodule Params.Mixfile do
      version: "2.0.1",
      elixir: "~> 1.2",
      name: "Params",
-     source_url: github,
+     source_url: github(),
      homepage_url: "https://hex.pm/packages/params",
-     docs: docs,
-     description: description,
-     package: package,
+     docs: docs(),
+     description: description(),
+     package: package(),
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     deps: deps()]
   end
 
   def description do
@@ -31,7 +31,7 @@ defmodule Params.Mixfile do
      maintainers: ["Victor Hugo Borja <vborja@apache.org>"],
      licenses: ["Apache 2.0"],
      links: %{
-       "GitHub" => github
+       "GitHub" => github()
      }]
   end
 
@@ -58,6 +58,6 @@ defmodule Params.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:ecto, "~> 2.0.1"}]
+    [{:ecto, "~> 2.0"}]
   end
 end

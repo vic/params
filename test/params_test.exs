@@ -149,7 +149,7 @@ defmodule ParamsTest do
     end
 
     def changeset(ch, params) do
-      cast(ch, params, ~w(name age), ~w())
+      cast(ch, params, ~w(name age))
       |> validate_inclusion(:age, 1..6)
     end
   end
