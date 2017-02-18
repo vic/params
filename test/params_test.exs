@@ -359,4 +359,17 @@ defmodule ParamsTest do
       }
     }
   end
+
+  defmodule DefaultCountParams do
+    use Params.Schema
+
+    schema do
+      field :count, :integer, default: 1
+    end
+  end
+
+  test "use Params.Schema respects defaults" do
+     changeset = DefaultCountParams.from(%{})
+     assert %{count: 1} = Params.to_map(changeset)
+  end
 end
