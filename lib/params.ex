@@ -45,10 +45,13 @@ defmodule Params do
   """
   @spec to_map(Changeset.t) :: map
   def to_map(%Changeset{data: %{__struct__: module}} = ch) do
-    default = module |> schema |> defaults
+    ecto_defaults = module |> plain_defaults_defined_by_ecto_schema
+    params_defaults = module |> schema |> defaults
     change = changes(ch)
 
-    deep_merge(default, change)
+    ecto_defaults
+    |> deep_merge(params_defaults)
+    |> deep_merge(change)
   end
 
   @doc """
@@ -228,5 +231,14 @@ defmodule Params do
         _ -> Map.put(m, k, v)
       end
     end)
+  end
+
+  defp plain_defaults_defined_by_ecto_schema(module) do
+    module
+    |> struct
+    |> Map.from_struct
+    |> Map.delete(:__meta__)
+    |> Enum.reject(fn {_, v} -> is_nil(v) end)
+    |> Enum.into(%{})
   end
 end
