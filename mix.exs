@@ -13,13 +13,14 @@ defmodule Params.Mixfile do
      package: package(),
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps(),
+     dialyzer: [plt_add_apps: [:ecto]]]
   end
 
   def description do
   """
   Parameter structure validation and casting with Ecto.Schema.
- """
+  """
   end
 
   def github do
@@ -61,7 +62,8 @@ defmodule Params.Mixfile do
     [
      {:ecto, "~> 2.0"},
      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-     {:earmark, ">= 0.0.0", only: :dev, runtime: false}
+     {:earmark, ">= 0.0.0", only: :dev, runtime: false},
+     {:dialyxir, "~> 0.5", only: :dev, runtime: false},
     ]
   end
 end
