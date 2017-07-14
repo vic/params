@@ -74,7 +74,7 @@ defmodule Params do
   data.login # => "foo"
   ```
   """
-  @spec data(Changeset.t) :: Struct.t
+  @spec data(Changeset.t) :: struct
   def data(%Changeset{data: data = %{__struct__: module}} = ch) do
     default_embeds = default_embeds_from_schema(module)
 
@@ -195,7 +195,8 @@ defmodule Params do
   end
   defp deep_merge_conflict(_k, _v1, v2), do: v2
 
-  defp defaults(params, acc \\ %{}, path \\ [])
+  defp defaults(params), do: defaults(params, %{}, [])
+  defp defaults(params, acc, path)
   defp defaults([], acc, _path), do: acc
   defp defaults(nil, _acc, _path), do: %{}
   defp defaults([opts | rest], acc, path) when is_list(opts) do
