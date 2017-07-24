@@ -257,5 +257,6 @@ Params.to_map(changeset) # => %{name: "John", auditlog: true}
 
 ## Contributors
 
-- Lasse Skindstad Ebert @lasseebert
-- Victor Borja @vborja
+Here's a list of [awesome people](https://github.com/vic/params/graphs/contributors) who have contributed code to this project.
+
+If you find a bug or want to improve something, please send a pull-request. Thank you!
