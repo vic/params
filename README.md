@@ -2,6 +2,7 @@
 
 Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Schema]
 
+[![Hex.pm](https://img.shields.io/hexpm/v/params.svg)](http://hex.pm/packages/params)
 [![Build Status](https://travis-ci.org/vic/params.svg?branch=master)](https://travis-ci.org/vic/params)
 [![help maintain this lib](https://img.shields.io/badge/looking%20for%20maintainer-DM%20%40vborja-663399.svg)](https://twitter.com/vborja)
 
