@@ -98,7 +98,9 @@ defmodule Params.Def do
   end
 
   defp field_names(schema, filter) do
-    schema |> Enum.filter_map(filter, &Keyword.get(&1, :name))
+    for field <- schema,
+        apply(filter, [field]),
+        do: Keyword.get(field, :name)
   end
 
   defp schema_fields(schema) do

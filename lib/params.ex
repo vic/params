@@ -108,7 +108,8 @@ defmodule Params do
       nil -> %{}
       schema ->
         schema
-        |> Stream.filter_map(is_embed_default, default_embed)
+        |> Stream.filter(is_embed_default)
+        |> Stream.map(default_embed)
         |> Enum.into(struct(module) |> Map.from_struct)
     end
   end
