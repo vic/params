@@ -112,11 +112,11 @@ defmodule ParamsTest do
   }
 
   test "kitten module has list of required fields" do
-    assert [:near_location, :breed] = Params.required(Params.Kitten)
+    assert [:near_location, :breed] = Params.required(Params.ParamsTest.Kitten)
   end
 
   test "kitten module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.Kitten)
+    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Kitten)
   end
 
   test "kitten method returns changeset" do
@@ -155,7 +155,7 @@ defmodule ParamsTest do
   end
 
   test "user can populate with custom changeset" do
-    assert %{valid?: false} = kid(%{name: "hugo", age: 5}, with: &Params.Kid.custom/2)
+    assert %{valid?: false} = kid(%{name: "hugo", age: 5}, with: &Params.ParamsTest.Kid.custom/2)
   end
 
   test "user can override changeset" do
