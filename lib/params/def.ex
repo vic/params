@@ -5,7 +5,7 @@ defmodule Params.Def do
   defmacro defparams({name, _, [schema]}, [do: block]) do
     block = Macro.escape(block)
     quote bind_quoted: [name: name, schema: schema, block: block] do
-      module_name = Params.Def.module_concat(Params, name)
+      module_name = Params.Def.module_concat(Params, __MODULE__, name)
 
       defmodule module_name do
         Params.Def.defschema(schema)
@@ -23,7 +23,7 @@ defmodule Params.Def do
   @doc false
   defmacro defparams({name, _, [schema]}) do
     quote bind_quoted: [name: name, schema: schema] do
-      module_name = Params.Def.module_concat(Params, name)
+      module_name = Params.Def.module_concat(Params, __MODULE__, name)
 
       defmodule module_name do
         Params.Def.defschema(schema)
@@ -69,6 +69,10 @@ defmodule Params.Def do
       acc
     end
     build_nested_schemas(rest, acc)
+  end
+
+  def module_concat(parent, scope, name) do
+    Module.concat [parent, scope, Macro.camelize("#{name}")]
   end
 
   def module_concat(parent, name) do
