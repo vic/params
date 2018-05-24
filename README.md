@@ -26,7 +26,7 @@ end
 ## About
 
 If you've been doing [Ecto][Ecto] based applications lately,
-you know Ecto provides a very easy way to populate structs with data comming
+you know Ecto provides a very easy way to populate structs with data coming
 from request parameters, validating and casting their values along the way.
 
 All this thanks to the [Ecto.Schema][Ecto.Schema] and [Ecto.Changeset][cast] modules.
