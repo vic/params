@@ -141,7 +141,7 @@ defmodule Params do
       relation_partition(module, optional(module))
 
     changeset
-    |> Changeset.cast(params, required ++ optional, [empty_values: [nil]])
+    |> Changeset.cast(params, required ++ optional, [empty_values: []])
     |> Changeset.validate_required(required)
     |> cast_relations(required_relations, [required: true])
     |> cast_relations(optional_relations, [])
