@@ -60,7 +60,7 @@ defmodule Params.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-     {:ecto, "~> 2.0"},
+     {:ecto, "~> 2.0 or ~> 3.0"},
      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
      {:earmark, ">= 0.0.0", only: :dev, runtime: false},
      {:dialyxir, "~> 0.5", only: :dev, runtime: false},
