@@ -126,6 +126,8 @@ defmodule Params.Def do
   defp field_call(meta) do
     cond do
       Keyword.get(meta, :field) -> :field
+      Keyword.get(meta, :embeds_one) -> :embeds_one
+      Keyword.get(meta, :embeds_many) -> :embeds_many
       Keyword.get(meta, :embeds) ->
         "embeds_#{Keyword.get(meta, :cardinality, :one)}" |> String.to_atom
     end
@@ -137,11 +139,13 @@ defmodule Params.Def do
     cond do
       Keyword.get(meta, :field) -> Keyword.get(meta, :field)
       Keyword.get(meta, :embeds) -> module_concat(module, name)
+      Keyword.get(meta, :embeds_one) -> Keyword.get(meta, :embeds_one)
+      Keyword.get(meta, :embeds_many) -> Keyword.get(meta, :embeds_many)
     end
   end
 
   defp field_options(meta) do
-    Keyword.drop(meta, [:module, :name, :field, :embeds, :required, :cardinality])
+    Keyword.drop(meta, [:module, :name, :field, :embeds, :embeds_one, :embeds_many, :required, :cardinality])
   end
 
   def normalize_schema(dict, module) do
@@ -154,6 +158,14 @@ defmodule Params.Def do
     required = String.ends_with?("#{k}", "!")
     name = String.replace_trailing("#{k}", "!", "") |> String.to_atom
     normalize_field(v, [name: name, required: required, module: module])
+  end
+
+  defp normalize_field({:embeds_one, embed_module}, options) do
+    [embeds_one: embed_module] ++ options
+  end
+
+  defp normalize_field({:embeds_many, embed_module}, options) do
+    [embeds_many: embed_module] ++ options
   end
 
   defp normalize_field(schema = %{}, options) do

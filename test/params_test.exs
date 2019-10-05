@@ -136,6 +136,76 @@ defmodule ParamsTest do
     assert %Changeset{valid?: true} = kitten(params)
   end
 
+  defparams puppy %{
+    breed!:  :string,
+    age_min: :integer,
+    age_max: :integer,
+    near_location!: {:embeds_one, LocationParams}
+  }
+
+  test "puppy module has list of required fields" do
+    assert [:near_location, :breed] = Params.required(Params.ParamsTest.Puppy)
+  end
+
+  test "puppy module has list of optional fields" do
+    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Puppy)
+  end
+
+  test "puppy method returns changeset" do
+    assert %Changeset{} = puppy(%{})
+  end
+
+  test "puppy returns valid changeset when all data is ok" do
+    params = %{
+      "breed" => "Russian Blue",
+      "age_min" => "0",
+      "age_max" => "4",
+      "near_location" => %{
+        "latitude" => "87.5",
+        "longitude" => "-90.0"
+      }
+    }
+    assert %Changeset{valid?: true} = puppy(params)
+  end
+
+  defparams dragon %{
+    breed!:  :string,
+    age_min: :integer,
+    age_max: :integer,
+    near_locations!: {:embeds_many, LocationParams}
+  }
+
+  test "dragon module has list of required fields" do
+    assert [:near_locations, :breed] = Params.required(Params.ParamsTest.Dragon)
+  end
+
+  test "dragon module has list of optional fields" do
+    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Dragon)
+  end
+
+  test "dragon method returns changeset" do
+    assert %Changeset{} = dragon(%{})
+  end
+
+  test "dragon returns valid changeset when all data is ok" do
+    params = %{
+      "breed" => "Russian Blue",
+      "age_min" => "0",
+      "age_max" => "4",
+      "near_locations" => [
+        %{
+          "latitude" => "87.5",
+          "longitude" => "-90.0"
+        },
+        %{
+          "latitude" => "67.5",
+          "longitude" => "-60.0"
+        }
+      ]
+    }
+    assert %Changeset{valid?: true} = dragon(params)
+  end
+
   defparams kid(
       %{
         name: :string,
