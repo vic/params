@@ -129,6 +129,8 @@ defmodule MyAPI.Params.KittenSearch
     field :breed, :string
     field :age_min, :integer
     field :age_max, :integer
+    field :age_max, :integer
+    field :color, Ecto.Enum, values: [:brown, :black, :grey, :unknown],
     embeds_one :near_location, Location
   end
 
@@ -172,6 +174,7 @@ defmodule MyAPI.KittenController do
     breed!: :string,
     age_max: :integer,
     age_min: [field: :integer, default: 1],
+    color: [field: Ecto.Enum, values: [:brown, :black, :grey, :unknown]],
     near_location!: %{
       latitude!: :float, longitude!: :float
     },
