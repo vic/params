@@ -1,10 +1,13 @@
-# Params
+# Params [![Looking for maintainer](https://img.shields.io/badge/looking%20for%20maintainer-DM%20%40vborja-663399.svg)](https://twitter.com/vborja)
+
+[![Build Status](https://travis-ci.org/vic/params.svg?branch=master)](https://travis-ci.org/vic/params)
+[![Hex Version](https://img.shields.io/hexpm/v/params.svg)](https://hex.pm/packages/params)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/params/)
+[![Total Download](https://img.shields.io/hexpm/dt/params.svg)](https://hex.pm/packages/params)
+[![License](https://img.shields.io/hexpm/l/params.svg)](https://github.com/vic/params/blob/master/LICENSE)
+[![Last Updated](https://img.shields.io/github/last-commit/vic/params.svg)](https://github.com/vic/params/commits/master)
 
 Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Schema]
-
-[![Hex.pm](https://img.shields.io/hexpm/v/params.svg)](http://hex.pm/packages/params)
-[![Build Status](https://travis-ci.org/vic/params.svg?branch=master)](https://travis-ci.org/vic/params)
-[![help maintain this lib](https://img.shields.io/badge/looking%20for%20maintainer-DM%20%40vborja-663399.svg)](https://twitter.com/vborja)
 
 - [About](#about)
 - [Installation](#installation)
@@ -15,11 +18,13 @@ Easily define parameter structure and validate/cast with [Ecto.Schema][Ecto.Sche
 
 [Available in Hex](https://hex.pm/packages/params), the package can be installed as:
 
-  1. Add params to your list of dependencies in `mix.exs`:
+Add params to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:params, "~> 2.0"}]
+  [
+    {:params, "~> 2.0"}
+  ]
 end
 ```
 
@@ -69,7 +74,7 @@ end
 ```
 
 However, you can use `Ecto.Schema` for validating/casting data that
-*wont necessarily* be persisted into a database. All you need is just specify a module and
+*won't necessarily* be persisted into a database. All you need is just specify a module and
 define your schema, [Ecto.Changeset][cast] will be happy to work with it.
 
 This comes handy when you have certain parameter structure you want
@@ -78,7 +83,7 @@ to enforce for example when creating a REST API.
 Some Rails developers might be right now wondering where their
 _strong parameters_ can be defined. On Elixir land, there's no need for such a thing, as we will see, just using an `Ecto.Schema` with `Ecto.Changeset`
 can be much more flexible. Using schemas allows not only
-specifing which fields we want, but changesets let use
+specifying which fields we want, but changesets let use
 type cast, perform validations on values, etc.
 
 So, for example, suppose your Phoenix based API performs a search for kittens looking for a
@@ -260,3 +265,17 @@ Params.to_map(changeset) # => %{name: "John", auditlog: true}
 Here's a list of [awesome people](https://github.com/vic/params/graphs/contributors) who have contributed code to this project.
 
 If you find a bug or want to improve something, please send a pull-request. Thank you!
+
+## Copyright and License
+
+Copyright (c) 2016 Victor Hugo Borja
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

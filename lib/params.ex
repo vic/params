@@ -3,27 +3,25 @@ defmodule Params do
   Functions for processing params and transforming their changesets.
 
   `use Params` provides a `defparams` macro, allowing you to define
-  functions that process parameters according to some [schema](Params.Schema.html)
+  functions that process parameters according to some [schema](Params.Schema.html).
 
   ## Example
 
-  ```elixir
-    defmodule MyApp.SessionController do
-      use Params
+      defmodule MyApp.SessionController do
+        use Params
 
-      defparams login_params(%{email!: :string, :password!: :string})
+        defparams login_params(%{email!: :string, :password!: :string})
 
-      def create(conn, params) do
-        case login_params(params) do
-          %Ecto.Changeset{valid?: true} = ch ->
-            login = Params.data(ch)
-            User.authenticate(login.email, login.password)
-            # ...
-          _ -> text(conn, "Invalid parameters")
+        def create(conn, params) do
+          case login_params(params) do
+            %Ecto.Changeset{valid?: true} = ch ->
+              login = Params.data(ch)
+              User.authenticate(login.email, login.password)
+              # ...
+            _ -> text(conn, "Invalid parameters")
+          end
         end
       end
-    end
-  ```
 
   """
 

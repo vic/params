@@ -9,24 +9,20 @@ defmodule Params.Schema do
 
   ## Example
 
-  ```elixir
-     defmodule ProductSearch do
-       use Params.Schema, %{
-         text!: :string,
-         near: %{
-           latitude!:  :float,
-           longitude!: :float
-         },
-         tags: [:string]
-       }
-     end
-  ```
+      defmodule ProductSearch do
+        use Params.Schema, %{
+          text!: :string,
+          near: %{
+            latitude!:  :float,
+            longitude!: :float
+          },
+          tags: [:string]
+        }
+      end
 
   To get an Ecto.Changeset for ProductSearch params use:
 
-  ```elixir
-     changeset = ProductSearch.from(params)
-  ```
+      changeset = ProductSearch.from(params)
 
   To transform the changeset into a map or `%ProductSearch{}`struct use
   [Params.changes/1](Params.html#changes/1) or [Params.data/1](Params.html#data/1)
