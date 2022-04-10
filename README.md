@@ -1,4 +1,6 @@
-# Params [![Looking for maintainer](https://img.shields.io/badge/looking%20for%20maintainer-DM%20%40vborja-663399.svg)](https://twitter.com/vborja)
+# Params 
+
+[Looking for maintainer](https://github.com/vic/params/issues/new?title=Becoming%20a%20maintainer)
 
 [![Build Status](https://travis-ci.org/vic/params.svg?branch=master)](https://travis-ci.org/vic/params)
 [![Hex Version](https://img.shields.io/hexpm/v/params.svg)](https://hex.pm/packages/params)
