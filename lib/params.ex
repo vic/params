@@ -125,7 +125,7 @@ defmodule Params do
   @doc false
   def optional(module) when is_atom(module) do
     module.__info__(:attributes) |> Keyword.get(:optional) |> case do
-      nil -> module.__changeset__ |> Map.keys
+      nil -> module.__changeset__() |> Map.keys
       x -> x
     end
   end
