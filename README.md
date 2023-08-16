@@ -2,7 +2,7 @@
 
 [Looking for maintainer](https://github.com/vic/params/issues/new?title=Becoming%20a%20maintainer)
 
-[![Build Status](https://travis-ci.org/vic/params.svg?branch=master)](https://travis-ci.org/vic/params)
+[![Build Status](https://github.com/vic/params/actions/workflows/ci.yaml/badge.svg)](https://github.com/vic/params/actions)
 [![Hex Version](https://img.shields.io/hexpm/v/params.svg)](https://hex.pm/packages/params)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/params/)
 [![Total Download](https://img.shields.io/hexpm/dt/params.svg)](https://hex.pm/packages/params)
