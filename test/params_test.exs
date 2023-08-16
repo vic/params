@@ -25,7 +25,7 @@ defmodule ParamsTest do
   end
 
   test "defaults to all optional fields" do
-    assert [:_id, :age, :name] == Params.optional PetParams
+    assert [:_id, :age, :name] == Enum.sort(Params.optional(PetParams))
   end
 
   test "from returns a changeset" do
@@ -112,11 +112,11 @@ defmodule ParamsTest do
   }
 
   test "kitten module has list of required fields" do
-    assert [:near_location, :breed] = Params.required(Params.ParamsTest.Kitten)
+    assert [:breed, :near_location] = Enum.sort(Params.required(Params.ParamsTest.Kitten))
   end
 
   test "kitten module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Kitten)
+    assert [:age_max, :age_min] = Enum.sort(Params.optional(Params.ParamsTest.Kitten))
   end
 
   test "kitten method returns changeset" do
@@ -148,7 +148,7 @@ defmodule ParamsTest do
   end
 
   test "puppy module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Puppy)
+    assert [:age_max, :age_min] = Enum.sort(Params.optional(Params.ParamsTest.Puppy))
   end
 
   test "puppy method returns changeset" do
@@ -176,11 +176,11 @@ defmodule ParamsTest do
   }
 
   test "dragon module has list of required fields" do
-    assert [:near_locations, :breed] = Params.required(Params.ParamsTest.Dragon)
+    assert [:breed, :near_locations] = Enum.sort(Params.required(Params.ParamsTest.Dragon))
   end
 
   test "dragon module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Dragon)
+    assert [:age_max, :age_min] = Enum.sort(Params.optional(Params.ParamsTest.Dragon))
   end
 
   test "dragon method returns changeset" do
