@@ -24,7 +24,9 @@ defmodule ParamsTest do
   end
 
   test "defaults to all optional fields" do
-    assert [:_id, :age, :name] == Params.optional(PetParams)
+    # the order of the map fields is not guaranteed in OTP 26+
+    # https://www.erlang.org/news/164#maps
+    assert [:_id, :age, :name] == Params.optional(PetParams) |> Enum.sort()
   end
 
   test "from returns a changeset" do
@@ -118,7 +120,9 @@ defmodule ParamsTest do
   end
 
   test "kitten module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Kitten)
+    # the order of the map fields is not guaranteed in OTP 26+
+    # https://www.erlang.org/news/164#maps
+    assert [:age_max, :age_min] = Params.optional(Params.ParamsTest.Kitten) |> Enum.sort()
   end
 
   test "kitten method returns changeset" do
@@ -153,7 +157,9 @@ defmodule ParamsTest do
   end
 
   test "puppy module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Puppy)
+    # the order of the map fields is not guaranteed in OTP 26+
+    # https://www.erlang.org/news/164#maps
+    assert [:age_max, :age_min] = Params.optional(Params.ParamsTest.Puppy) |> Enum.sort()
   end
 
   test "puppy method returns changeset" do
@@ -188,7 +194,9 @@ defmodule ParamsTest do
   end
 
   test "dragon module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Dragon)
+    # the order of the map fields is not guaranteed in OTP 26+
+    # https://www.erlang.org/news/164#maps
+    assert [:age_max, :age_min] = Params.optional(Params.ParamsTest.Dragon) |> Enum.sort()
   end
 
   test "dragon method returns changeset" do
