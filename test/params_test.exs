@@ -2,30 +2,31 @@ defmodule ParamsTest do
   use ExUnit.Case
   use Params
 
-  alias  Ecto.Changeset
+  alias Ecto.Changeset
   import Ecto.Changeset
 
   defmodule PetParams do
     use Params.Schema
+
     schema do
-      field :name
-      field :age, :integer
+      field(:name)
+      field(:age, :integer)
     end
   end
 
   test "module has schema types" do
-    assert %{age: :integer,
-             name: :string,
-             _id: :binary_id} ==
-      PetParams.__changeset__
+    assert %{age: :integer, name: :string, _id: :binary_id} ==
+             PetParams.__changeset__()
   end
 
   test "defaults to no required fields" do
-    assert [] == Params.required PetParams
+    assert [] == Params.required(PetParams)
   end
 
   test "defaults to all optional fields" do
-    assert [:_id, :age, :name] == Params.optional PetParams
+    # the order of the map fields is not guaranteed in OTP 26+
+    # https://www.erlang.org/news/164#maps
+    assert [:_id, :age, :name] == Params.optional(PetParams) |> Enum.sort()
   end
 
   test "from returns a changeset" do
@@ -42,8 +43,8 @@ defmodule ParamsTest do
     use Params.Schema
     @required ~w(latitude longitude)
     schema do
-      field :latitude,  :float
-      field :longitude, :float
+      field(:latitude, :float)
+      field(:longitude, :float)
     end
   end
 
@@ -51,8 +52,8 @@ defmodule ParamsTest do
     use Params.Schema
     @required ~w(origin destination)
     schema do
-      embeds_one :origin, LocationParams
-      embeds_one :destination, LocationParams
+      embeds_one(:origin, LocationParams)
+      embeds_one(:destination, LocationParams)
     end
   end
 
@@ -78,7 +79,7 @@ defmodule ParamsTest do
   test "invalid if nested required missing" do
     params = %{
       "origin" => %{
-        "latitude" => 12.2,
+        "latitude" => 12.2
       },
       "destination" => %{
         "longitude" => 13.3
@@ -88,35 +89,40 @@ defmodule ParamsTest do
     assert %{valid?: false} = BusParams.from(params)
   end
 
-
   test "to_map gets map of struct except for _id" do
     params = %{
       "latitude" => 12.2,
       "longitude" => 13.3
     }
-    result = params
-              |> LocationParams.from
-              |> Params.to_map
+
+    result =
+      params
+      |> LocationParams.from()
+      |> Params.to_map()
 
     assert result == %{latitude: 12.2, longitude: 13.3}
   end
 
-  defparams kitten %{
-    breed!:  :string,
-    age_min: :integer,
-    age_max: :integer,
-    near_location!: %{
-      latitude: :float,
-      longitude: :float
-    }
-  }
+  defparams(
+    kitten(%{
+      breed!: :string,
+      age_min: :integer,
+      age_max: :integer,
+      near_location!: %{
+        latitude: :float,
+        longitude: :float
+      }
+    })
+  )
 
   test "kitten module has list of required fields" do
     assert [:near_location, :breed] = Params.required(Params.ParamsTest.Kitten)
   end
 
   test "kitten module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Kitten)
+    # the order of the map fields is not guaranteed in OTP 26+
+    # https://www.erlang.org/news/164#maps
+    assert [:age_max, :age_min] = Params.optional(Params.ParamsTest.Kitten) |> Enum.sort()
   end
 
   test "kitten method returns changeset" do
@@ -133,22 +139,27 @@ defmodule ParamsTest do
         "longitude" => "-90.0"
       }
     }
+
     assert %Changeset{valid?: true} = kitten(params)
   end
 
-  defparams puppy %{
-    breed!:  :string,
-    age_min: :integer,
-    age_max: :integer,
-    near_location!: {:embeds_one, LocationParams}
-  }
+  defparams(
+    puppy(%{
+      breed!: :string,
+      age_min: :integer,
+      age_max: :integer,
+      near_location!: {:embeds_one, LocationParams}
+    })
+  )
 
   test "puppy module has list of required fields" do
     assert [:near_location, :breed] = Params.required(Params.ParamsTest.Puppy)
   end
 
   test "puppy module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Puppy)
+    # the order of the map fields is not guaranteed in OTP 26+
+    # https://www.erlang.org/news/164#maps
+    assert [:age_max, :age_min] = Params.optional(Params.ParamsTest.Puppy) |> Enum.sort()
   end
 
   test "puppy method returns changeset" do
@@ -165,22 +176,27 @@ defmodule ParamsTest do
         "longitude" => "-90.0"
       }
     }
+
     assert %Changeset{valid?: true} = puppy(params)
   end
 
-  defparams dragon %{
-    breed!:  :string,
-    age_min: :integer,
-    age_max: :integer,
-    near_locations!: {:embeds_many, LocationParams}
-  }
+  defparams(
+    dragon(%{
+      breed!: :string,
+      age_min: :integer,
+      age_max: :integer,
+      near_locations!: {:embeds_many, LocationParams}
+    })
+  )
 
   test "dragon module has list of required fields" do
     assert [:near_locations, :breed] = Params.required(Params.ParamsTest.Dragon)
   end
 
   test "dragon module has list of optional fields" do
-    assert [:age_min, :age_max] = Params.optional(Params.ParamsTest.Dragon)
+    # the order of the map fields is not guaranteed in OTP 26+
+    # https://www.erlang.org/news/164#maps
+    assert [:age_max, :age_min] = Params.optional(Params.ParamsTest.Dragon) |> Enum.sort()
   end
 
   test "dragon method returns changeset" do
@@ -203,15 +219,14 @@ defmodule ParamsTest do
         }
       ]
     }
+
     assert %Changeset{valid?: true} = dragon(params)
   end
 
-  defparams kid(
-      %{
-        name: :string,
-        age: :integer
-      }) do
-
+  defparams kid(%{
+              name: :string,
+              age: :integer
+            }) do
     def custom(ch, params) do
       cast(ch, params, ~w(name age)a)
       |> validate_required([:name])
@@ -233,7 +248,7 @@ defmodule ParamsTest do
   end
 
   test "can obtain data from changeset" do
-    m = Params.data kid(%{name: "hugo", age: "5"})
+    m = Params.data(kid(%{name: "hugo", age: "5"}))
     assert "hugo" == m.name
     assert 5 == m.age
     assert nil == m._id
@@ -243,7 +258,7 @@ defmodule ParamsTest do
     @schema %{
       name: :string,
       near: %{
-        latitude:  :float,
+        latitude: :float,
         longitude: :float
       }
     }
@@ -271,16 +286,17 @@ defmodule ParamsTest do
   end
 
   defmodule ManyNames do
-    use  Params.Schema, %{names!: [%{name!: :string}]}
+    use Params.Schema, %{names!: [%{name!: :string}]}
   end
 
   test "can have array of embedded schemas" do
     assert %{valid?: true} = ch = ManyNames.from(%{names: [%{name: "Julio"}, %{name: "Cesar"}]})
-    assert ["Julio", "Cesar"] = ch |> Params.data |> Map.get(:names) |> Enum.map(&(&1.name))
+    assert ["Julio", "Cesar"] = ch |> Params.data() |> Map.get(:names) |> Enum.map(& &1.name)
   end
 
   defmodule Vowel do
     use Params.Schema, %{x: :string}
+
     def changeset(ch, params) do
       cast(ch, params, [:x])
       |> validate_required([:x])
@@ -296,9 +312,11 @@ defmodule ParamsTest do
     assert {:error, %Changeset{valid?: false}} = Vowel.data(%{"x" => "x"})
   end
 
-  defparams schema_options %{
-    foo: [field: :string, default: "FOO"]
-  }
+  defparams(
+    schema_options(%{
+      foo: [field: :string, default: "FOO"]
+    })
+  )
 
   test "can specify raw Ecto.Schema options like default using a keyword list" do
     ch = schema_options(%{})
@@ -313,19 +331,21 @@ defmodule ParamsTest do
     assert map == %{foo: "FOO"}
   end
 
-  defparams default_nested %{
-    foo: %{
-      bar: :string,
-      baz: :string
-    },
-    bat: %{
-      man: [field: :string, default: "BATMAN"],
-      wo: %{
-        man: [field: :string, default: "BATWOMAN"]
+  defparams(
+    default_nested(%{
+      foo: %{
+        bar: :string,
+        baz: :string
       },
-      mo: %{ vil: :string }
-    }
-  }
+      bat: %{
+        man: [field: :string, default: "BATMAN"],
+        wo: %{
+          man: [field: :string, default: "BATWOMAN"]
+        },
+        mo: %{vil: :string}
+      }
+    })
+  )
 
   test "embeds with defaults are not nil" do
     ch = default_nested(%{})
@@ -344,34 +364,35 @@ defmodule ParamsTest do
     result = Params.to_map(changeset)
 
     assert result == %{
-      bat: %{
-        man: "BATMAN",
-        wo: %{
-          man: "BATWOMAN"
-        }
-      }
-    }
+             bat: %{
+               man: "BATMAN",
+               wo: %{
+                 man: "BATWOMAN"
+               }
+             }
+           }
   end
 
   test "to_map works on nested schemas with default values" do
-    changeset = %{
-      bat: %{
-        man: "Bruce"
+    changeset =
+      %{
+        bat: %{
+          man: "Bruce"
+        }
       }
-    }
-    |> default_nested
+      |> default_nested
 
     assert changeset.valid?
     result = Params.to_map(changeset)
 
     assert result == %{
-      bat: %{
-        man: "Bruce",
-        wo: %{
-          man: "BATWOMAN"
-        }
-      }
-    }
+             bat: %{
+               man: "Bruce",
+               wo: %{
+                 man: "BATWOMAN"
+               }
+             }
+           }
   end
 
   defmodule DefaultNested do
@@ -382,12 +403,12 @@ defmodule ParamsTest do
       d: %{
         e: :string,
         f: :string,
-        g: [field: :string, default: "G"],
+        g: [field: :string, default: "G"]
       },
       h: %{
         i: :string,
         j: :string,
-        k: [field: :string, default: "K"],
+        k: [field: :string, default: "K"]
       },
       l: %{
         m: :string
@@ -397,49 +418,49 @@ defmodule ParamsTest do
           p: [field: :string, default: "P"]
         }
       }
-
     }
   end
 
   test "to_map only returns submitted fields" do
-    result = %{
-      a: "A",
-      d: %{
-        e: "E",
-        g: "g"
-      }
-    }
-    |> DefaultNested.from
-    |> Params.to_map
-
-    assert result == %{
-      a: "A",
-      c: "C",
-      d: %{
-        e: "E",
-        g: "g"
-      },
-      h: %{
-        k: "K"
-      },
-      n: %{
-        o: %{
-          p: "P"
+    result =
+      %{
+        a: "A",
+        d: %{
+          e: "E",
+          g: "g"
         }
       }
-    }
+      |> DefaultNested.from()
+      |> Params.to_map()
+
+    assert result == %{
+             a: "A",
+             c: "C",
+             d: %{
+               e: "E",
+               g: "g"
+             },
+             h: %{
+               k: "K"
+             },
+             n: %{
+               o: %{
+                 p: "P"
+               }
+             }
+           }
   end
 
   defmodule DefaultCountParams do
     use Params.Schema
 
     schema do
-      field :count, :integer, default: 1
+      field(:count, :integer, default: 1)
     end
   end
 
   test "use Params.Schema respects defaults" do
-     changeset = DefaultCountParams.from(%{})
-     assert %{count: 1} = Params.to_map(changeset)
+    changeset = DefaultCountParams.from(%{})
+    assert %{count: 1} = Params.to_map(changeset)
   end
 end
