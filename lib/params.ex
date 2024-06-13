@@ -169,7 +169,7 @@ defmodule Params do
   end
 
   defp relation_partition(module, names) do
-    types = module.__changeset__
+    types = module.__changeset__()
 
     names
     |> Stream.map(fn x -> String.to_atom("#{x}") end)
