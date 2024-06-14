@@ -2,8 +2,9 @@ defmodule Params.Def do
   @moduledoc false
 
   @doc false
-  defmacro defparams({name, _, [schema]}, [do: block]) do
+  defmacro defparams({name, _, [schema]}, do: block) do
     block = Macro.escape(block)
+
     quote bind_quoted: [name: name, schema: schema, block: block] do
       module_name = Params.Def.module_concat(Params, __MODULE__, name)
 
@@ -12,11 +13,14 @@ defmodule Params.Def do
         Code.eval_quoted(block, [], __ENV__)
       end
 
-      Module.eval_quoted(__MODULE__, quote do
-         def unquote(name)(params, options \\ []) do
-           unquote(module_name).from(params, options)
-         end
-      end)
+      Module.eval_quoted(
+        __MODULE__,
+        quote do
+          def unquote(name)(params, options \\ []) do
+            unquote(module_name).from(params, options)
+          end
+        end
+      )
     end
   end
 
@@ -29,11 +33,14 @@ defmodule Params.Def do
         Params.Def.defschema(schema)
       end
 
-      Module.eval_quoted(__MODULE__, quote do
-         def unquote(name)(params) do
-           unquote(module_name).from(params)
-         end
-      end)
+      Module.eval_quoted(
+        __MODULE__,
+        quote do
+          def unquote(name)(params) do
+            unquote(module_name).from(params)
+          end
+        end
+      )
     end
   end
 
@@ -44,7 +51,7 @@ defmodule Params.Def do
       Module.eval_quoted(__MODULE__, Params.Def.gen_root_schema(normalized_schema))
 
       normalized_schema
-      |> Params.Def.build_nested_schemas
+      |> Params.Def.build_nested_schemas()
       |> Enum.each(fn
         {name, content} ->
           Module.create(name, content, Macro.Env.location(__ENV__))
@@ -54,41 +61,46 @@ defmodule Params.Def do
 
   def build_nested_schemas(schemas, acc \\ [])
   def build_nested_schemas([], acc), do: acc
+
   def build_nested_schemas([schema | rest], acc) do
     embedded = Keyword.has_key?(schema, :embeds)
-    acc = if embedded do
-      sub_schema = Keyword.get(schema, :embeds)
 
-      module_def = {
-        sub_schema |> List.first |> Keyword.get(:module),
-        Params.Def.gen_root_schema(sub_schema)
-      }
-      new_acc = [module_def | acc]
-      build_nested_schemas(sub_schema, new_acc)
-    else
-      acc
-    end
+    acc =
+      if embedded do
+        sub_schema = Keyword.get(schema, :embeds)
+
+        module_def = {
+          sub_schema |> List.first() |> Keyword.get(:module),
+          Params.Def.gen_root_schema(sub_schema)
+        }
+
+        new_acc = [module_def | acc]
+        build_nested_schemas(sub_schema, new_acc)
+      else
+        acc
+      end
+
     build_nested_schemas(rest, acc)
   end
 
   def module_concat(parent, scope, name) do
-    Module.concat [parent, scope, Macro.camelize("#{name}")]
+    Module.concat([parent, scope, Macro.camelize("#{name}")])
   end
 
   def module_concat(parent, name) do
-    Module.concat [parent, Macro.camelize("#{name}")]
+    Module.concat([parent, Macro.camelize("#{name}")])
   end
 
   def gen_root_schema(schema) do
     quote do
       use Params.Schema
 
-      @schema   unquote(schema)
+      @schema unquote(schema)
       @required unquote(field_names(schema, &is_required?/1))
       @optional unquote(field_names(schema, &is_optional?/1))
 
       schema do
-        unquote_splicing(schema_fields(schema))
+        (unquote_splicing(schema_fields(schema)))
       end
     end
   end
@@ -118,6 +130,7 @@ defmodule Params.Def do
       field_type(meta),
       field_options(meta)
     }
+
     quote do
       unquote(call)(unquote(name), unquote(type), unquote(opts))
     end
@@ -125,17 +138,24 @@ defmodule Params.Def do
 
   defp field_call(meta) do
     cond do
-      Keyword.get(meta, :field) -> :field
-      Keyword.get(meta, :embeds_one) -> :embeds_one
-      Keyword.get(meta, :embeds_many) -> :embeds_many
+      Keyword.get(meta, :field) ->
+        :field
+
+      Keyword.get(meta, :embeds_one) ->
+        :embeds_one
+
+      Keyword.get(meta, :embeds_many) ->
+        :embeds_many
+
       Keyword.get(meta, :embeds) ->
-        "embeds_#{Keyword.get(meta, :cardinality, :one)}" |> String.to_atom
+        "embeds_#{Keyword.get(meta, :cardinality, :one)}" |> String.to_atom()
     end
   end
 
   defp field_type(meta) do
     module = Keyword.get(meta, :module)
-    name   = Keyword.get(meta, :name)
+    name = Keyword.get(meta, :name)
+
     cond do
       Keyword.get(meta, :field) -> Keyword.get(meta, :field)
       Keyword.get(meta, :embeds) -> module_concat(module, name)
@@ -145,19 +165,28 @@ defmodule Params.Def do
   end
 
   defp field_options(meta) do
-    Keyword.drop(meta, [:module, :name, :field, :embeds, :embeds_one, :embeds_many, :required, :cardinality])
+    Keyword.drop(meta, [
+      :module,
+      :name,
+      :field,
+      :embeds,
+      :embeds_one,
+      :embeds_many,
+      :required,
+      :cardinality
+    ])
   end
 
   def normalize_schema(dict, module) do
-    Enum.reduce(dict, [], fn {k,v}, list ->
+    Enum.reduce(dict, [], fn {k, v}, list ->
       [normalize_field({module, k, v}) | list]
     end)
   end
 
   defp normalize_field({module, k, v}) do
     required = String.ends_with?("#{k}", "!")
-    name = String.replace_trailing("#{k}", "!", "") |> String.to_atom
-    normalize_field(v, [name: name, required: required, module: module])
+    name = String.replace_trailing("#{k}", "!", "") |> String.to_atom()
+    normalize_field(v, name: name, required: required, module: module)
   end
 
   defp normalize_field({:embeds_one, embed_module}, options) do
@@ -169,7 +198,7 @@ defmodule Params.Def do
   end
 
   defp normalize_field(schema = %{}, options) do
-    module = module_concat Keyword.get(options, :module), Keyword.get(options, :name)
+    module = module_concat(Keyword.get(options, :module), Keyword.get(options, :name))
     [embeds: normalize_schema(schema, module)] ++ options
   end
 
@@ -192,5 +221,4 @@ defmodule Params.Def do
   defp normalize_field([value], options) do
     [field: {:array, value}] ++ options
   end
-
 end

@@ -47,7 +47,7 @@ defmodule Params.Schema do
   end
 
   @doc false
-  defmacro schema([do: definition]) do
+  defmacro schema(do: definition) do
     quote do
       Ecto.Schema.schema "params #{__MODULE__}" do
         unquote(definition)
@@ -67,13 +67,13 @@ defmodule Params.Schema do
     quote do
       Module.register_attribute(__MODULE__, :required, persist: true)
       Module.register_attribute(__MODULE__, :optional, persist: true)
-      Module.register_attribute(__MODULE__, :schema,   persist: true)
+      Module.register_attribute(__MODULE__, :schema, persist: true)
 
       @behaviour Params.Behaviour
 
       def from(params, options \\ []) when is_list(options) do
         on_cast = Keyword.get(options, :with, &__MODULE__.changeset(&1, &2))
-        __MODULE__ |> struct |> Ecto.Changeset.change |> on_cast.(params)
+        __MODULE__ |> struct |> Ecto.Changeset.change() |> on_cast.(params)
       end
 
       def data(params, options \\ []) when is_list(options) do
@@ -87,8 +87,7 @@ defmodule Params.Schema do
         Params.changeset(changeset, params)
       end
 
-      defoverridable [changeset: 2]
+      defoverridable changeset: 2
     end
   end
-
 end
