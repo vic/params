@@ -13,13 +13,14 @@ defmodule Params.Def do
         Code.eval_quoted(block, [], __ENV__)
       end
 
-      Module.eval_quoted(
-        __MODULE__,
+      Code.eval_quoted(
         quote do
           def unquote(name)(params, options \\ []) do
             unquote(module_name).from(params, options)
           end
-        end
+        end,
+        [],
+        module: __MODULE__
       )
     end
   end
@@ -33,13 +34,14 @@ defmodule Params.Def do
         Params.Def.defschema(schema)
       end
 
-      Module.eval_quoted(
-        __MODULE__,
+      Code.eval_quoted(
         quote do
           def unquote(name)(params) do
             unquote(module_name).from(params)
           end
-        end
+        end,
+        [],
+        module: __MODULE__
       )
     end
   end
@@ -48,7 +50,7 @@ defmodule Params.Def do
   defmacro defschema(schema) do
     quote bind_quoted: [schema: schema] do
       normalized_schema = Params.Def.normalize_schema(schema, __MODULE__)
-      Module.eval_quoted(__MODULE__, Params.Def.gen_root_schema(normalized_schema))
+      Code.eval_quoted(Params.Def.gen_root_schema(normalized_schema), [], module: __MODULE__)
 
       normalized_schema
       |> Params.Def.build_nested_schemas()
