@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.3.0] - 2025-02-27
+
 ### Documentation
 
 * Miscellaneous documentation changes, including updates for HexDocs.pm. (#37 by @kianmeng)
@@ -84,7 +86,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * to_map now only returns the submitted keys and keys with default values. (#10 by @lasseebert)
 
-[Unreleased]: https://github.com/vic/params/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/vic/params/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/vic/params/compare/v2.1.1...v2.3.0
 [2.2.0]: https://github.com/vic/params/compare/v2.1.1...v2.2.0
 [2.1.1]: https://github.com/vic/params/compare/v2.0.6...v2.1.1
 [2.0.6]: https://github.com/vic/params/compare/v2.0.5...v2.0.6
