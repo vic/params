@@ -41,7 +41,7 @@ defmodule Params do
   Recursively traverses and transforms embedded changesets and skips keys that
   was not part of params given to changeset
   """
-  @spec to_map(Changeset.t) :: map
+  @spec to_map(Changeset.t()) :: map
   def to_map(%Changeset{data: %{__struct__: module}} = ch) do
     ecto_defaults = module |> plain_defaults_defined_by_ecto_schema
     params_defaults = module |> schema |> defaults
@@ -72,13 +72,14 @@ defmodule Params do
   data.login # => "foo"
   ```
   """
-  @spec data(Changeset.t) :: struct
+  @spec data(Changeset.t()) :: struct
   def data(%Changeset{data: data = %{__struct__: module}} = ch) do
     default_embeds = default_embeds_from_schema(module)
 
-    default = Enum.reduce(default_embeds, data, fn {k, v}, m ->
-      Map.put(m, k, Map.get(m, k) || v)
-    end)
+    default =
+      Enum.reduce(default_embeds, data, fn {k, v}, m ->
+        Map.put(m, k, Map.get(m, k) || v)
+      end)
 
     Enum.reduce(ch.changes, default, fn {k, v}, m ->
       case v do
@@ -103,12 +104,14 @@ defmodule Params do
     end
 
     case schema(module) do
-      nil -> %{}
+      nil ->
+        %{}
+
       schema ->
         schema
         |> Stream.filter(is_embed_default)
         |> Stream.map(default_embed)
-        |> Enum.into(struct(module) |> Map.from_struct)
+        |> Enum.into(struct(module) |> Map.from_struct())
     end
   end
 
@@ -143,7 +146,7 @@ defmodule Params do
     changeset
     |> Changeset.cast(params, required ++ optional)
     |> Changeset.validate_required(required)
-    |> cast_relations(required_relations, [required: true])
+    |> cast_relations(required_relations, required: true)
     |> cast_relations(optional_relations, [])
   end
 
@@ -158,15 +161,15 @@ defmodule Params do
   end
 
   defp change(%{__struct__: _} = model) do
-    model |> Changeset.change
+    model |> Changeset.change()
   end
 
   defp change(module) when is_atom(module) do
-    module |> struct |> Changeset.change
+    module |> struct |> Changeset.change()
   end
 
   defp relation_partition(module, names) do
-    types = module.__changeset__
+    types = module.__changeset__()
 
     names
     |> Stream.map(fn x -> String.to_atom("#{x}") end)
@@ -174,6 +177,7 @@ defmodule Params do
       case Map.get(types, name) do
         {type, _} when type in @relations ->
           {fields, [{name, type} | relations]}
+
         _ ->
           {[name | fields], relations}
       end
@@ -194,33 +198,39 @@ defmodule Params do
   defp deep_merge_conflict(_k, %{} = m1, %{} = m2) do
     deep_merge(m1, m2)
   end
+
   defp deep_merge_conflict(_k, _v1, v2), do: v2
 
   defp defaults(params), do: defaults(params, %{}, [])
   defp defaults(params, acc, path)
   defp defaults([], acc, _path), do: acc
   defp defaults(nil, _acc, _path), do: %{}
+
   defp defaults([opts | rest], acc, path) when is_list(opts) do
     defaults([Enum.into(opts, %{}) | rest], acc, path)
   end
+
   defp defaults([%{name: name, embeds: embeds} | rest], acc, path) do
     acc = defaults(embeds, acc, [name | path])
     defaults(rest, acc, path)
   end
+
   defp defaults([%{name: name, default: value} | rest], acc, path) do
-    funs = [name | path]
-    |> Enum.reverse
-    |> Enum.map(fn nested_name ->
-      fn :get_and_update, data, next ->
-        with {nil, inner_data} <- next.(data[nested_name] || %{}),
-             data = Map.put(data, nested_name, inner_data),
-             do: {nil, data}
-      end
-    end)
+    funs =
+      [name | path]
+      |> Enum.reverse()
+      |> Enum.map(fn nested_name ->
+        fn :get_and_update, data, next ->
+          with {nil, inner_data} <- next.(data[nested_name] || %{}),
+               data = Map.put(data, nested_name, inner_data),
+               do: {nil, data}
+        end
+      end)
 
     acc = put_in(acc, funs, value)
     defaults(rest, acc, path)
   end
+
   defp defaults([%{} | rest], acc, path) do
     defaults(rest, acc, path)
   end
@@ -238,7 +248,7 @@ defmodule Params do
   defp plain_defaults_defined_by_ecto_schema(module) do
     module
     |> struct
-    |> Map.from_struct
+    |> Map.from_struct()
     |> Map.delete(:__meta__)
     |> Enum.reject(fn {_, v} -> is_nil(v) end)
     |> Enum.into(%{})
