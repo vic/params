@@ -16,7 +16,7 @@ defmodule Params.Mixfile do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       dialyzer: [plt_add_apps: [:ecto]],
-      xref: [exclude: [Ecto.Changeset]]
+      elixirc_options: [no_warn_undefined: [Ecto.Changeset]]
     ]
   end
 
