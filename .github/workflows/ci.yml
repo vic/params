@@ -42,7 +42,7 @@ jobs:
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
-      - run: mix deps.get --check-locked --only test
+      - run: mix deps.get --check-locked
       - run: mix deps.compile
       - run: mix compile --warnings-as-errors
         if: ${{ matrix.lint }}
