@@ -8,7 +8,7 @@ defmodule Params.Mixfile do
     [
       app: :params,
       version: @version,
-      elixir: "~> 1.2",
+      elixir: "~> 1.15",
       name: "Params",
       deps: deps(),
       docs: docs(),
