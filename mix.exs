@@ -8,7 +8,7 @@ defmodule Params.Mixfile do
     [
       app: :params,
       version: @version,
-      elixir: "~> 1.2",
+      elixir: "~> 1.15",
       name: "Params",
       deps: deps(),
       docs: docs(),
@@ -16,7 +16,7 @@ defmodule Params.Mixfile do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       dialyzer: [plt_add_apps: [:ecto]],
-      xref: [exclude: [Ecto.Changeset]]
+      elixirc_options: [no_warn_undefined: [Ecto.Changeset]]
     ]
   end
 
